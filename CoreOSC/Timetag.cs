@@ -1,89 +1,88 @@
 ﻿using System;
 
-namespace CoreOSC
+namespace LucHeart.CoreOSC;
+
+public struct Timetag
 {
-    public struct Timetag
+    public UInt64 Tag;
+
+    public DateTime Timestamp
     {
-        public UInt64 Tag;
-
-        public DateTime Timestamp
+        get
         {
-            get
-            {
-                return Utils.TimetagToDateTime(Tag);
-            }
-            set
-            {
-                Tag = Utils.DateTimeToTimetag(value);
-            }
+            return Utils.TimetagToDateTime(Tag);
         }
-
-        /// <summary>
-        /// Gets or sets the fraction of a second in the timestamp. the double precision number is multiplied by 2^32
-        /// giving an accuracy down to about 230 picoseconds ( 1/(2^32) of a second)
-        /// </summary>
-        public double Fraction
+        set
         {
-            get
-            {
-                return Utils.TimetagToFraction(Tag);
-            }
-            set
-            {
-                Tag = (Tag & 0xFFFFFFFF00000000) + (UInt32)(value * 0xFFFFFFFF);
-            }
+            Tag = Utils.DateTimeToTimetag(value);
         }
+    }
 
-        public Timetag(UInt64 value)
+    /// <summary>
+    /// Gets or sets the fraction of a second in the timestamp. the double precision number is multiplied by 2^32
+    /// giving an accuracy down to about 230 picoseconds ( 1/(2^32) of a second)
+    /// </summary>
+    public double Fraction
+    {
+        get
         {
-            this.Tag = value;
+            return Utils.TimetagToFraction(Tag);
         }
-
-        public Timetag(DateTime value)
+        set
         {
-            Tag = 0;
-            this.Timestamp = value;
+            Tag = (Tag & 0xFFFFFFFF00000000) + (UInt32)(value * 0xFFFFFFFF);
         }
+    }
 
-        public override bool Equals(System.Object obj)
-        {
-            if (obj.GetType() == typeof(Timetag))
-            {
-                if (this.Tag == ((Timetag)obj).Tag)
-                    return true;
-                else
-                    return false;
-            }
-            else if (obj.GetType() == typeof(UInt64))
-            {
-                if (this.Tag == ((UInt64)obj))
-                    return true;
-                else
-                    return false;
-            }
-            else
-                return false;
-        }
+    public Timetag(UInt64 value)
+    {
+        this.Tag = value;
+    }
 
-        public static bool operator ==(Timetag a, Timetag b)
+    public Timetag(DateTime value)
+    {
+        Tag = 0;
+        this.Timestamp = value;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is Timetag timetag)
         {
-            if (a.Equals(b))
+            if (this.Tag == timetag.Tag)
                 return true;
             else
                 return false;
         }
-
-        public static bool operator !=(Timetag a, Timetag b)
+        else if (obj is ulong @ulong)
         {
-            if (a.Equals(b))
+            if (this.Tag == @ulong)
                 return true;
             else
                 return false;
         }
+        else
+            return false;
+    }
 
-        public override int GetHashCode()
-        {
-            return (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
-        }
+    public static bool operator ==(Timetag a, Timetag b)
+    {
+        if (a.Equals(b))
+            return true;
+        else
+            return false;
+    }
+
+    public static bool operator !=(Timetag a, Timetag b)
+    {
+        if (a.Equals(b))
+            return true;
+        else
+            return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
     }
 }

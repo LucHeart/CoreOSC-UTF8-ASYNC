@@ -1,35 +1,35 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
+using NUnit.Framework;
 
-namespace CoreOSC.Tests
+namespace LucHeart.CoreOSC.Tests;
+
+[TestFixture]
+public class TimetagTest
 {
-    [TestFixture]
-    public class TimetagTest
+    [TestCase]
+    public void TestTimetag()
     {
-        [TestCase]
-        public void TestTimetag()
-        {
-            UInt64 time = (UInt64)60 * (UInt64)60 * (UInt64)24 * (UInt64)365 * (UInt64)108;
-            time = time << 32;
-            time = time + (UInt64)(Math.Pow(2, 32) / 2);
-            var date = Utils.TimetagToDateTime(time);
+        var time = (ulong) 60 * 60 * 24 * 365 * 108;
+        time <<= 32;
+        time += (ulong)(Math.Pow(2, 32) / 2);
+        var date = Utils.TimetagToDateTime(time);
 
-            Assert.AreEqual(DateTime.Parse("2007-12-06 00:00:00.500"), date);
-        }
+        Assert.AreEqual(DateTime.Parse("2007-12-06 00:00:00.500"), date);
+    }
 
-        [TestCase]
-        public void TestDateTimeToTimetag()
-        {
-            var dt = DateTime.Now;
+    [TestCase]
+    public void TestDateTimeToTimetag()
+    {
+        var dt = DateTime.UtcNow;
 
-            var l = Utils.DateTimeToTimetag(dt);
-            var dtBack = Utils.TimetagToDateTime(l);
+        var l = Utils.DateTimeToTimetag(dt);
+        Console.WriteLine(l);
+        var dtBack = Utils.TimetagToDateTime(l);
 
-            Assert.AreEqual(dt.Date, dtBack.Date);
-            Assert.AreEqual(dt.Hour, dtBack.Hour);
-            Assert.AreEqual(dt.Minute, dtBack.Minute);
-            Assert.AreEqual(dt.Second, dtBack.Second);
-            Assert.AreEqual(dt.Millisecond, dtBack.Millisecond);
-        }
+        Assert.AreEqual(dt.Date, dtBack.Date);
+        Assert.AreEqual(dt.Hour, dtBack.Hour);
+        Assert.AreEqual(dt.Minute, dtBack.Minute);
+        Assert.AreEqual(dt.Second, dtBack.Second);
+        Assert.AreEqual(dt.Millisecond, dtBack.Millisecond);
     }
 }

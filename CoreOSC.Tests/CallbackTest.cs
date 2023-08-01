@@ -1,70 +1,69 @@
-﻿using NUnit.Framework;
-using System;
+﻿using System;
 using System.Threading;
+using NUnit.Framework;
 
-namespace CoreOSC.Tests
+namespace LucHeart.CoreOSC.Tests;
+
+[TestFixture]
+internal class CallbackTest
 {
-    [TestFixture]
-    internal class CallbackTest
+    [TestCase]
+    public void TestCallback()
     {
-        [TestCase]
-        public void TestCallback()
+        bool cbCalled = false;
+        // The cabllback function
+        HandleOscPacket cb = delegate (OscPacket packet)
         {
-            bool cbCalled = false;
-            // The cabllback function
-            HandleOscPacket cb = delegate (OscPacket packet)
-            {
-                var msg = (OscMessage)packet;
-                Assert.AreEqual(2, msg.Arguments.Count);
-                Assert.AreEqual(23, msg.Arguments[0]);
-                Assert.AreEqual("hello world", msg.Arguments[1]);
-                cbCalled = true;
-            };
+            var msg = (OscMessage)packet;
+            Assert.AreEqual(2, msg.Arguments.Length);
+            Assert.AreEqual(23, msg.Arguments[0]);
+            Assert.AreEqual("hello world", msg.Arguments[1]);
+            cbCalled = true;
+        };
 
-            var l1 = new UDPListener(55555, cb);
+        var l1 = new UDPListener(Constants.TestPort, cb);
 
-            var sender = new CoreOSC.UDPSender("localhost", 55555);
-            var msg1 = new CoreOSC.OscMessage("/test/address", 23, "hello world");
-            sender.Send(msg1);
+        var sender = new CoreOSC.UDPSender(Constants.TestAddress, Constants.TestPort);
+        var msg1 = new CoreOSC.OscMessage("/test/address", 23, "hello world");
+        sender.Send(msg1);
 
-            // Wait until callback processes its message
-            var start = DateTime.Now;
-            while (cbCalled == false && start.AddSeconds(2) > DateTime.Now)
-                Thread.Sleep(1);
+        // Wait until callback processes its message
+        var start = DateTime.Now;
+        while (cbCalled == false && start.AddSeconds(2) > DateTime.Now)
+            Thread.Sleep(1);
 
-            Assert.IsTrue(cbCalled);
+        Assert.IsTrue(cbCalled);
 
-            l1.Close();
-        }
+        l1.Close();
+    }
 
-        [TestCase]
-        public void TestByteCallback()
+    [TestCase]
+    public void TestByteCallback()
+    {
+        bool cbCalled = false;
+        // The cabllback function
+        HandleBytePacket cb = delegate (byte[] packet)
         {
-            bool cbCalled = false;
-            // The cabllback function
-            HandleBytePacket cb = delegate (byte[] packet)
-            {
-                var msg = (OscMessage)OscPacket.GetPacket(packet);
-                Assert.AreEqual(2, msg.Arguments.Count);
-                Assert.AreEqual(23, msg.Arguments[0]);
-                Assert.AreEqual("hello world", msg.Arguments[1]);
-                cbCalled = true;
-            };
+            var msg = (OscMessage)OscPacket.GetPacket(packet);
+            Assert.AreEqual(2, msg.Arguments.Length);
+            Assert.AreEqual(23, msg.Arguments[0]);
+            Assert.AreEqual("hello world", msg.Arguments[1]);
+            cbCalled = true;
+        };
 
-            var l1 = new UDPListener(55555, cb);
+        var l1 = new UDPListener(Constants.TestPort, cb);
 
-            var sender = new CoreOSC.UDPSender("localhost", 55555);
-            var msg1 = new CoreOSC.OscMessage("/test/address", 23, "hello world");
-            sender.Send(msg1);
+        var sender = new CoreOSC.UDPSender(Constants.TestAddress, Constants.TestPort);
+        var msg1 = new CoreOSC.OscMessage("/test/address", 23, "hello world");
+        sender.Send(msg1);
 
-            // Wait until callback processes its message
-            var start = DateTime.Now;
-            while (cbCalled == false && start.AddSeconds(2) > DateTime.Now)
-                Thread.Sleep(1);
+        // Wait until callback processes its message
+        var start = DateTime.Now;
+        while (cbCalled == false && start.AddSeconds(2) > DateTime.Now)
+            Thread.Sleep(1);
 
-            Assert.IsTrue(cbCalled);
+        Assert.IsTrue(cbCalled);
 
-            l1.Close();
-        }
+        l1.Close();
     }
 }

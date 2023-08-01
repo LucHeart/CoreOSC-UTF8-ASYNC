@@ -1,31 +1,30 @@
 ﻿using System;
 
-namespace CoreOSC.Tests
+namespace LucHeart.CoreOSC.Tests;
+
+internal class Program
 {
-    internal class Program
-    {
-        private static void Main(string[] args)
-        {
-            /*var message = new CoreOSC.OscMessage("/Knob", 0.5f);
-			var sender = new CoreOSC.UDPSender("127.0.0.1", 10000);
+	private static void Main(string[] args)
+	{
+		/*var message = new CoreOSC.OscMessage("/Knob", 0.5f);
+		var sender = new CoreOSC.UDPSender("127.0.0.1", 10000);
 
-			while (true)
-			{
-				var inp = Console.ReadLine();
-				float f = Convert.ToSingle(inp);
-				message.Arguments[0] = f;
-				sender.Send(message);
-			}*/
+		while (true)
+		{
+			var inp = Console.ReadLine();
+			float f = Convert.ToSingle(inp);
+			message.Arguments[0] = f;
+			sender.Send(message);
+		}*/
 
-            HandleOscPacket cb = delegate (OscPacket packet)
-            {
-                var msg = ((OscBundle)packet).Messages[0];
-                Console.WriteLine(msg.Arguments[0].ToString());
-            };
+		HandleOscPacket cb = delegate (OscPacket packet)
+		{
+			var msg = ((OscBundle)packet).Messages[0];
+			Console.WriteLine(msg.Arguments[0].ToString());
+		};
 
-            var l1 = new UDPListener(10001, cb);
+		var l1 = new UDPListener(10001, cb);
 
-            Console.ReadLine();
-        }
-    }
+		Console.ReadLine();
+	}
 }

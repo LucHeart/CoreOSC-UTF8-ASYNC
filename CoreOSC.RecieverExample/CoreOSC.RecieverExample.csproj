@@ -2,7 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
+    <AssemblyName>LucHeart.CoreOSC.RecieverExample</AssemblyName>
+    <RootNamespace>LucHeart.CoreOSC.RecieverExample</RootNamespace>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <Company>LucHeart</Company>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
   <ItemGroup>

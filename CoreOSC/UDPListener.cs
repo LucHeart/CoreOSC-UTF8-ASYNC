@@ -5,172 +5,172 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace CoreOSC
+namespace LucHeart.CoreOSC;
+
+public delegate void HandleOscPacket(OscPacket packet);
+
+public delegate void HandleBytePacket(byte[] packet);
+
+public class UDPListener : IDisposable
 {
-    public delegate void HandleOscPacket(OscPacket packet);
+    public int Port { get; private set; }
 
-    public delegate void HandleBytePacket(byte[] packet);
+    private object callbackLock;
 
-    public class UDPListener : IDisposable
+    protected UdpClient receivingUdpClient;
+    private IPEndPoint RemoteIpEndPoint;
+
+    protected HandleBytePacket BytePacketCallback = null;
+    protected HandleOscPacket OscPacketCallback = null;
+
+    private Queue<byte[]> queue;
+    private ManualResetEvent ClosingEvent;
+
+    public UDPListener(int port)
     {
-        public int Port { get; private set; }
+        Port = port;
+        queue = new Queue<byte[]>();
+        ClosingEvent = new ManualResetEvent(false);
+        callbackLock = new object();
 
-        private object callbackLock;
-
-        protected UdpClient receivingUdpClient;
-        private IPEndPoint RemoteIpEndPoint;
-
-        protected HandleBytePacket BytePacketCallback = null;
-        protected HandleOscPacket OscPacketCallback = null;
-
-        private Queue<byte[]> queue;
-        private ManualResetEvent ClosingEvent;
-
-        public UDPListener(int port)
+        // try to open the port 10 times, else fail
+        for (int i = 0; i < 10; i++)
         {
-            Port = port;
-            queue = new Queue<byte[]>();
-            ClosingEvent = new ManualResetEvent(false);
-            callbackLock = new object();
-
-            // try to open the port 10 times, else fail
-            for (int i = 0; i < 10; i++)
+            try
             {
+                receivingUdpClient = new UdpClient(port);
+                break;
+            }
+            catch (Exception)
+            {
+                // Failed in ten tries, throw the exception and give up
+                if (i >= 9)
+                    throw;
+
+                Thread.Sleep(5);
+            }
+        }
+        RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+        // setup first async event
+        AsyncCallback callBack = new AsyncCallback(ReceiveCallback);
+            
+        receivingUdpClient.BeginReceive(callBack, null);
+    }
+
+    public UDPListener(int port, HandleOscPacket callback) : this(port)
+    {
+        this.OscPacketCallback = callback;
+    }
+
+    public UDPListener(int port, HandleBytePacket callback) : this(port)
+    {
+        this.BytePacketCallback = callback;
+    }
+
+    private void ReceiveCallback(IAsyncResult result)
+    {
+        Monitor.Enter(callbackLock);
+        Byte[] bytes = null;
+
+        try
+        {
+            bytes = receivingUdpClient.EndReceive(result, ref RemoteIpEndPoint);
+        }
+        catch (ObjectDisposedException)
+        {
+            // Ignore if disposed. This happens when closing the listener
+        }
+
+        // Process bytes
+        if (bytes != null && bytes.Length > 0)
+        {
+            if (BytePacketCallback != null)
+            {
+                BytePacketCallback(bytes);
+            }
+            else if (OscPacketCallback != null)
+            {
+                OscPacket packet = null;
                 try
                 {
-                    receivingUdpClient = new UdpClient(port);
-                    break;
+                    packet = OscPacket.GetPacket(bytes);
                 }
                 catch (Exception)
                 {
-                    // Failed in ten tries, throw the exception and give up
-                    if (i >= 9)
-                        throw;
+                    // If there is an error reading the packet, null is sent to the callback
+                }
 
-                    Thread.Sleep(5);
+                OscPacketCallback(packet);
+            }
+            else
+            {
+                lock (queue)
+                {
+                    queue.Enqueue(bytes);
                 }
             }
-            RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        }
 
-            // setup first async event
+        if (closing)
+            ClosingEvent.Set();
+        else
+        {
+            // Setup next async event
             AsyncCallback callBack = new AsyncCallback(ReceiveCallback);
             receivingUdpClient.BeginReceive(callBack, null);
         }
+        Monitor.Exit(callbackLock);
+    }
 
-        public UDPListener(int port, HandleOscPacket callback) : this(port)
+    private bool closing = false;
+
+    public void Close()
+    {
+        lock (callbackLock)
         {
-            this.OscPacketCallback = callback;
+            ClosingEvent.Reset();
+            closing = true;
+            receivingUdpClient.Close();
         }
+        ClosingEvent.WaitOne();
+    }
 
-        public UDPListener(int port, HandleBytePacket callback) : this(port)
+    public void Dispose()
+    {
+        this.Close();
+    }
+
+    public OscPacket Receive()
+    {
+        if (closing) throw new Exception("UDPListener has been closed.");
+
+        lock (queue)
         {
-            this.BytePacketCallback = callback;
-        }
-
-        private void ReceiveCallback(IAsyncResult result)
-        {
-            Monitor.Enter(callbackLock);
-            Byte[] bytes = null;
-
-            try
+            if (queue.Count() > 0)
             {
-                bytes = receivingUdpClient.EndReceive(result, ref RemoteIpEndPoint);
+                byte[] bytes = queue.Dequeue();
+                var packet = OscPacket.GetPacket(bytes);
+                return packet;
             }
-            catch (ObjectDisposedException)
-            {
-                // Ignore if disposed. This happens when closing the listener
-            }
-
-            // Process bytes
-            if (bytes != null && bytes.Length > 0)
-            {
-                if (BytePacketCallback != null)
-                {
-                    BytePacketCallback(bytes);
-                }
-                else if (OscPacketCallback != null)
-                {
-                    OscPacket packet = null;
-                    try
-                    {
-                        packet = OscPacket.GetPacket(bytes);
-                    }
-                    catch (Exception)
-                    {
-                        // If there is an error reading the packet, null is sent to the callback
-                    }
-
-                    OscPacketCallback(packet);
-                }
-                else
-                {
-                    lock (queue)
-                    {
-                        queue.Enqueue(bytes);
-                    }
-                }
-            }
-
-            if (closing)
-                ClosingEvent.Set();
             else
-            {
-                // Setup next async event
-                AsyncCallback callBack = new AsyncCallback(ReceiveCallback);
-                receivingUdpClient.BeginReceive(callBack, null);
-            }
-            Monitor.Exit(callbackLock);
+                return null;
         }
+    }
 
-        private bool closing = false;
+    public byte[] ReceiveBytes()
+    {
+        if (closing) throw new Exception("UDPListener has been closed.");
 
-        public void Close()
+        lock (queue)
         {
-            lock (callbackLock)
+            if (queue.Count() > 0)
             {
-                ClosingEvent.Reset();
-                closing = true;
-                receivingUdpClient.Close();
+                byte[] bytes = queue.Dequeue();
+                return bytes;
             }
-            ClosingEvent.WaitOne();
-        }
-
-        public void Dispose()
-        {
-            this.Close();
-        }
-
-        public OscPacket Receive()
-        {
-            if (closing) throw new Exception("UDPListener has been closed.");
-
-            lock (queue)
-            {
-                if (queue.Count() > 0)
-                {
-                    byte[] bytes = queue.Dequeue();
-                    var packet = OscPacket.GetPacket(bytes);
-                    return packet;
-                }
-                else
-                    return null;
-            }
-        }
-
-        public byte[] ReceiveBytes()
-        {
-            if (closing) throw new Exception("UDPListener has been closed.");
-
-            lock (queue)
-            {
-                if (queue.Count() > 0)
-                {
-                    byte[] bytes = queue.Dequeue();
-                    return bytes;
-                }
-                else
-                    return null;
-            }
+            else
+                return null;
         }
     }
 }

@@ -1,9 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>CoreOSC</AssemblyName>
-    <RootNamespace>CoreOSC</RootNamespace>
+    <AssemblyName>LucHeart.CoreOSC</AssemblyName>
+    <RootNamespace>LucHeart.CoreOSC</RootNamespace>
+    <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>11</LangVersion>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>LucHeart.CoreOSC</PackageId>
+    <Authors>LucHeart</Authors>
+    <PackageProjectUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
+    <PackageTags>osc</PackageTags>
+    <Company>LucHeart</Company>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <NeutralLanguage>en</NeutralLanguage>
   </PropertyGroup>
 
 </Project>
