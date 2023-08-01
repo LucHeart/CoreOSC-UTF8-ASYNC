@@ -1,12 +1,11 @@
 ﻿using System;
-using NUnit.Framework;
+using Xunit;
 
 namespace LucHeart.CoreOSC.Tests;
 
-[TestFixture]
 public class TimetagTest
 {
-    [TestCase]
+    [Fact]
     public void TestTimetag()
     {
         var time = (ulong) 60 * 60 * 24 * 365 * 108;
@@ -14,22 +13,21 @@ public class TimetagTest
         time += (ulong)(Math.Pow(2, 32) / 2);
         var date = Utils.TimetagToDateTime(time);
 
-        Assert.AreEqual(DateTime.Parse("2007-12-06 00:00:00.500"), date);
+        Assert.Equal(DateTime.Parse("2007-12-06 00:00:00.500"), date);
     }
 
-    [TestCase]
+    [Fact]
     public void TestDateTimeToTimetag()
     {
         var dt = DateTime.UtcNow;
 
         var l = Utils.DateTimeToTimetag(dt);
-        Console.WriteLine(l);
         var dtBack = Utils.TimetagToDateTime(l);
 
-        Assert.AreEqual(dt.Date, dtBack.Date);
-        Assert.AreEqual(dt.Hour, dtBack.Hour);
-        Assert.AreEqual(dt.Minute, dtBack.Minute);
-        Assert.AreEqual(dt.Second, dtBack.Second);
-        Assert.AreEqual(dt.Millisecond, dtBack.Millisecond);
+        Assert.Equal(dt.Date, dtBack.Date);
+        Assert.Equal(dt.Hour, dtBack.Hour);
+        Assert.Equal(dt.Minute, dtBack.Minute);
+        Assert.Equal(dt.Second, dtBack.Second);
+        Assert.Equal(dt.Millisecond, dtBack.Millisecond);
     }
 }

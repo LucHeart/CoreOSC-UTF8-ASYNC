@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using OneOf;
 
 namespace LucHeart.CoreOSC;
 
 public abstract class OscPacket
 {
-    public static OscPacket GetPacket(byte[] oscData)
+    public static OneOf<OscMessage, OscBundle> GetPacket(byte[] oscData)
     {
         if (oscData[0] == '#')
             return parseBundle(oscData);

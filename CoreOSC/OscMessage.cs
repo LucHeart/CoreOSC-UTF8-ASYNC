@@ -9,9 +9,9 @@ namespace LucHeart.CoreOSC;
 public class OscMessage : OscPacket
 {
     public readonly string Address;
-    public readonly object[] Arguments;
+    public readonly object?[] Arguments;
 
-    public OscMessage(string address, params object[] args)
+    public OscMessage(string address, params object?[] args)
     {
         this.Address = address;
         Arguments = args;

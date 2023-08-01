@@ -1,7 +1,8 @@
-﻿namespace LucHeart.CoreOSC.Tests;
+﻿using System.Net;
+
+namespace LucHeart.CoreOSC.Tests;
 
 public static class Constants
 {
-    public const string TestAddress = "127.0.0.1";
-    public const int TestPort = 33333;
+    public static IPEndPoint TestEndpoint = new IPEndPoint(IPAddress.Loopback, 33333);
 }
