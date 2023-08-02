@@ -15,7 +15,7 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscPacket.GetPacket(bytes).AsT0;
-        Assert.Equal(val, ((double)msg2.Arguments[0]));
+        Assert.Equal(val, (double)msg2.Arguments[0]!);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscPacket.GetPacket(bytes).AsT0;
-        Assert.Equal(blob, ((byte[])msg2.Arguments[0]));
+        Assert.Equal(blob, (byte[])msg2.Arguments[0]!);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscPacket.GetPacket(bytes).AsT0;
-        Assert.Equal(tag.Tag, ((Timetag)msg2.Arguments[0]).Tag);
+        Assert.Equal(tag.Tag, ((Timetag)msg2.Arguments[0]!).Tag);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class ParseTest
 
         Assert.Equal(9999, msg2.Arguments[0]);
         Assert.Equal(list, msg2.Arguments[1]);
-        Assert.Equal(list.Count, ((List<object>)(msg2.Arguments[1])).Count);
+        Assert.Equal(list.Count, ((List<object>)msg2.Arguments[1]!).Count);
         Assert.Equal(24.24f, msg2.Arguments[2]);
     }
 

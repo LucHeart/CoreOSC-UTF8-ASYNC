@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -6,11 +7,12 @@ namespace LucHeart.CoreOSC.Tests;
 
 public class IntegrationTest
 {
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task TestMessage()
     {
-        using var listener = new UdpListener(Constants.TestEndpoint);
-        using var sender = new UdpSender(Constants.TestEndpoint);
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender = new UdpSender(endpoint);
 
         // Test every message type (except Symbol)
         var msg1 = new OscMessage(
@@ -60,11 +62,12 @@ public class IntegrationTest
         Assert.Equal(double.PositiveInfinity, msgRevc.Arguments[15]);
     }
 
-    [Fact]
+    [Fact(Timeout = 1000)]
     public async Task TestBundle()
     {
-        using var listener = new UdpListener(Constants.TestEndpoint);
-        using var sender1 = new UdpSender(Constants.TestEndpoint);
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender1 = new UdpSender(endpoint);
         var msg1 = new OscMessage("/test/address1", 23, 42.42f, "hello world", new byte[] { 2, 3, 4 });
         var msg2 = new OscMessage("/test/address2", 34, 24.24f, "hello again", new byte[] { 5, 6, 7, 8, 9 });
         var dt = DateTime.Now;

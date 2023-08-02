@@ -1,98 +1,97 @@
-﻿// using System;
-// using System.Threading;
-// using NUnit.Framework;
-//
-// namespace LucHeart.CoreOSC.Tests;
-//
-// [TestFixture]
-// internal class ListenerTest
-// {
-//     /// <summary>
-//     /// Opens a listener on a specified port, then closes it and attempts to open another on the same port
-//     /// Opening the second listener will fail unless the first one has been properly closed.
-//     /// </summary>
-//     [TestCase]
-//     public void CloseListener()
-//     {
-//         var l1 = new UdpListener(Constants.TestPort);
-//         var isnull = l1.Receive();
-//         l1.Close();
-//
-//         var l2 = new UdpListener(Constants.TestPort);
-//         isnull = l2.Receive();
-//         l2.Close();
-//     }
-//
-//     /// <summary>
-//     /// Tries to open two listeners on the same port, results in an exception
-//     /// </summary>
-//     [TestCase]
-//     public void CloseListenerException()
-//     {
-//         UdpListener l1 = null;
-//         bool ex = false;
-//         try
-//         {
-//             l1 = new UdpListener(Constants.TestPort);
-//             var isnull = l1.Receive();
-//             var l2 = new UdpListener(Constants.TestPort);
-//         }
-//         catch (Exception)
-//         {
-//             ex = true;
-//         }
-//
-//         Assert.IsTrue(ex);
-//         l1.Close();
-//     }
-//
-//     /// <summary>
-//     /// Single message receive
-//     /// </summary>
-//     [TestCase]
-//     public void ListenerSingleMSG()
-//     {
-//         var listener = new UdpListener(Constants.TestPort);
-//
-//         var sender = new CoreOSC.UDPSender(Constants.TestAddress, Constants.TestPort);
-//
-//         var msg = new CoreOSC.OscMessage("/test/", 23.42f);
-//
-//         sender.Send(msg);
-//
-//         while (true)
-//         {
-//             var pack = listener.Receive();
-//             if (pack == null)
-//                 Thread.Sleep(1);
-//             else
-//                 break;
-//         }
-//
-//         listener.Dispose();
-//     }
-//
-//     /// <summary>
-//     /// Bombard the listener with messages, check if they are all received
-//     /// </summary>
-//     [TestCase]
-//     public void ListenerLoadTest()
-//     {
-//         var listener = new UdpListener(Constants.TestPort);
-//
-//         var sender = new CoreOSC.UDPSender(Constants.TestAddress, Constants.TestPort);
-//
-//         var msg = new CoreOSC.OscMessage("/test/", 23.42f);
-//
-//         for (int i = 0; i < 1000; i++)
-//             sender.Send(msg);
-//
-//         for (int i = 0; i < 1000; i++)
-//         {
-//             var receivedMessage = listener.Receive();
-//             Assert.NotNull(receivedMessage);
-//         }
-//
-//         listener.Dispose();
-//     }
-// }
+﻿using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace LucHeart.CoreOSC.Tests;
+
+public class ListenerTest
+{
+    /// <summary>
+    /// Opens a listener on a specified port, then closes it and attempts to open another on the same port
+    /// Opening the second listener will fail unless the first one has been properly closed.
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public void CloseListener()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        using (new UdpListener(endpoint))
+        {
+            // Logic would be within the lifetime of this listener
+        } // Dispose happens here, compiler sugar :)
+        using var l2 = new UdpListener(endpoint);
+    }
+
+    /// <summary>
+    /// Tries to open two listeners on the same port, results in an exception
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public void CloseListenerException()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        Assert.Throws<SocketException>(() =>
+        {
+            using var l1 = new UdpListener(endpoint);
+            using var l2 = new UdpListener(endpoint);
+        });
+    }
+    
+    /// <summary>
+    /// Single message receive
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public async Task ListenerSingleMsg()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender = new UdpSender(endpoint);
+    
+        var msg = new OscMessage("/test/", 23.42f);
+        await sender.SendAsync(msg);
+        var received = (await listener.ReceiveAsync()).AsT0;
+        Assert.Equal("/test/", received.Address);
+        Assert.Equal(23.42f, received.Arguments[0]);
+    }
+    
+    /// <summary>
+    /// Bombard the listener with messages, check if they are all received
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public async Task ListenerLoadTest()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender = new UdpSender(endpoint);
+    
+        var msg = new OscMessage("/test/", 23.42f);
+    
+        for (var i = 0; i < 1000; i++)
+            await sender.SendAsync(msg);
+    
+        for (var i = 0; i < 1000; i++)
+        {
+            var receivedMessage = (await listener.ReceiveAsync()).AsT0;
+            Assert.Equal("/test/", receivedMessage.Address);
+            Assert.Equal(23.42f, receivedMessage.Arguments[0]);
+        }
+    }
+    
+    /// <summary>
+    /// Single message receive with utf8 content
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public async Task ListenerUtf8()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender = new UdpSender(endpoint);
+    
+        var msg = new OscMessage("/test/", "⚡");
+        await sender.SendAsync(msg);
+        var received = (await listener.ReceiveAsync()).AsT0;
+        Assert.Equal("/test/", received.Address);
+        Assert.Equal("⚡", received.Arguments[0]);
+    }
+}
