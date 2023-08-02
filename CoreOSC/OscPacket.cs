@@ -351,10 +351,8 @@ public abstract class OscPacket
     protected static byte[] setString(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);
-
-        byte[] msg = new byte[(bytes.Length / 4 + 1) * 4];
+        var msg = new byte[(bytes.Length / 4 + 1) * 4];
         bytes.CopyTo(msg, 0);
-
         return msg;
     }
 
@@ -422,16 +420,6 @@ public abstract class OscPacket
         output[1] = 0;
         output[2] = 0;
         output[3] = (byte)value;
-        return output;
-    }
-
-    protected static byte[] setMidi(Midi value)
-    {
-        byte[] output = new byte[4];
-        output[0] = value.Port;
-        output[1] = value.Status;
-        output[2] = value.Data1;
-        output[3] = value.Data2;
         return output;
     }
 

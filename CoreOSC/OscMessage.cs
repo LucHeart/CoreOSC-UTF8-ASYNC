@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -22,9 +23,9 @@ public class OscMessage : OscPacket
         var parts = new List<byte[]>();
 
         var currentList = Arguments;
-        int ArgumentsIndex = 0;
+        var argumentsIndex = 0;
 
-        var typeString = ",";
+        var typeStringBuilder = new StringBuilder(",");
         var i = 0;
         while (i < currentList.Length)
         {
@@ -32,82 +33,82 @@ public class OscMessage : OscPacket
             switch (arg)
             {
                 case int intValue:
-                    typeString += "i";
+                    typeStringBuilder.Append("i");
                     parts.Add(setInt(intValue));
                     break;
 
                 case float floatValue:
                     if (float.IsPositiveInfinity(floatValue))
                     {
-                        typeString += "I";
+                        typeStringBuilder.Append("I");
                         break;
                     }
-                    typeString += "f";
+                    typeStringBuilder.Append("f");
                     parts.Add(setFloat(floatValue));
                     break;
 
                 case string stringValue:
-                    typeString += "s";
+                    typeStringBuilder.Append("s");
                     parts.Add(setString(stringValue));
                     break;
 
                 case byte[] byteArrayValue:
-                    typeString += "b";
+                    typeStringBuilder.Append("b");
                     parts.Add(setBlob(byteArrayValue));
                     break;
 
                 case long longValue:
-                    typeString += "h";
+                    typeStringBuilder.Append("h");
                     parts.Add(setLong(longValue));
                     break;
 
                 case ulong ulongValue:
-                    typeString += "t";
+                    typeStringBuilder.Append("t");
                     parts.Add(setULong(ulongValue));
                     break;
 
                 case Timetag timeTagValue:
-                    typeString += "t";
+                    typeStringBuilder.Append("t");
                     parts.Add(setULong(timeTagValue.Tag));
                     break;
 
                 case double doubleValue:
                     if (double.IsPositiveInfinity(doubleValue))
                     {
-                        typeString += "I";
+                        typeStringBuilder.Append("I");
                         break;
                     }
 
-                    typeString += "d";
+                    typeStringBuilder.Append("d");
                     parts.Add(setDouble(doubleValue));
                     break;
 
                 case Symbol symbolValue:
-                    typeString += "S";
+                    typeStringBuilder.Append("S");
                     parts.Add(symbolValue.ToBytes());
                     break;
 
                 case char charValue:
-                    typeString += "c";
+                    typeStringBuilder.Append("c");
                     parts.Add(setChar(charValue));
                     break;
 
                 case RGBA rgbaValue:
-                    typeString += "r";
+                    typeStringBuilder.Append("r");
                     parts.Add(rgbaValue.ToBytes());
                     break;
 
                 case Midi midiValue:
-                    typeString += "m";
-                    parts.Add(setMidi(midiValue));
+                    typeStringBuilder.Append("m");
+                    parts.Add(midiValue.ToBytes());
                     break;
 
                 case bool boolValue:
-                    typeString += boolValue ? "T" : "F";
+                    typeStringBuilder.Append(boolValue ? "T" : "F");
                     break;
 
                 case null:
-                    typeString += "N";
+                    typeStringBuilder.Append("N");
                     break;
 
                 // This part handles arrays. It points currentList to the array and resets i
@@ -119,9 +120,9 @@ public class OscMessage : OscPacket
 
                     if (Arguments != currentList)
                         throw new Exception("Nested Arrays are not supported");
-                    typeString += "[";
+                    typeStringBuilder.Append("[");
                     currentList = array;
-                    ArgumentsIndex = i;
+                    argumentsIndex = i;
                     i = 0;
                     continue;
 
@@ -133,27 +134,28 @@ public class OscMessage : OscPacket
             if (currentList != Arguments && i == currentList.Length)
             {
                 // End of array, go back to main Argument list
-                typeString += "]";
+                typeStringBuilder.Append("]");
                 currentList = Arguments;
-                i = ArgumentsIndex + 1;
+                i = argumentsIndex + 1;
             }
         }
 
-        int addressLen = (Address.Length == 0 || Address == null) ? 0 : Utils.AlignedStringLength(Address);
-        int typeLen = Utils.AlignedStringLength(typeString);
+        var addressLen = string.IsNullOrEmpty(Address) ? 0 : Utils.AlignedStringLength(Address);
+        var typeString = typeStringBuilder.ToString();
+        var typeLen = Utils.AlignedStringLength(typeString);
 
-        int total = addressLen + typeLen + parts.Sum(x => x.Length);
-
-        byte[] output = new byte[total];
+        var total = addressLen + typeLen + parts.Sum(x => x.Length);
+        
+        var output = new byte[total];
         i = 0;
 
         Encoding.ASCII.GetBytes(Address).CopyTo(output, i);
         i += addressLen;
-
+        
         Encoding.ASCII.GetBytes(typeString).CopyTo(output, i);
         i += typeLen;
 
-        foreach (byte[] part in parts)
+        foreach (var part in parts)
         {
             part.CopyTo(output, i);
             i += part.Length;
