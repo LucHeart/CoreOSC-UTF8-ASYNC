@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Text;
 using OneOf;
@@ -25,8 +26,9 @@ public abstract class OscPacket
     /// <returns>Message containing various arguments and an address</returns>
     private static OscMessage ParseMessage(byte[] msg)
     {
+        ReadOnlySpan<byte> msgSpan = msg.AsSpan();
         var index = 0;
-        
+
         var arguments = new List<object?>();
         var mainArray = arguments; // used as a reference when we are parsing arrays to get the main array back
 
@@ -35,7 +37,8 @@ public abstract class OscPacket
         index += msg.FirstIndexAfter(address.Length, x => x == ',');
 
         if (index % 4 != 0)
-            throw new Exception("Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");
+            throw new Exception(
+                "Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");
 
         // Get type tags
         var types = getTypes(msg, index);
@@ -61,13 +64,13 @@ public abstract class OscPacket
                     break;
 
                 case 'i':
-                    var intVal = getInt(msg, index);
+                    var intVal = getInt(msgSpan, index);
                     arguments.Add(intVal);
                     index += 4;
                     break;
 
                 case 'f':
-                    var floatVal = getFloat(msg, index);
+                    var floatVal = getFloat(msgSpan, index);
                     arguments.Add(floatVal);
                     index += 4;
                     break;
@@ -79,19 +82,19 @@ public abstract class OscPacket
                     break;
 
                 case 'b':
-                    var blob = getBlob(msg, index);
-                    arguments.Add(blob);
+                    var blob = getBlob(msgSpan, index);
+                    arguments.Add(blob.ToArray());
                     index += 4 + blob.Length;
                     break;
 
                 case 'h':
-                    var hval = getLong(msg, index);
+                    var hval = getLong(msgSpan, index);
                     arguments.Add(hval);
                     index += 8;
                     break;
 
                 case 't':
-                    var sval = getULong(msg, index);
+                    var sval = getULong(msgSpan, index);
                     arguments.Add(new Timetag(sval));
                     index += 8;
                     break;
@@ -176,7 +179,7 @@ public abstract class OscPacket
 
         int index = 0;
 
-        var bundleTag = Encoding.ASCII.GetString(bundle.SubArray(0, 8));
+        var bundleTag = Encoding.ASCII.GetString(bundle[..8]);
         index += 8;
 
         timetag = getULong(bundle, index);
@@ -190,7 +193,7 @@ public abstract class OscPacket
             var size = getInt(bundle, index);
             index += 4;
 
-            var messageBytes = bundle.SubArray(index, size);
+            var messageBytes = bundle[index..(index + size)];
             var message = ParseMessage(messageBytes);
 
             messages.Add(message);
@@ -210,16 +213,14 @@ public abstract class OscPacket
 
     private static string getAddress(byte[] msg, int index)
     {
-        string address = "";
-        char[] chars = Encoding.UTF8.GetChars(msg);
+        var address = "";
+        var chars = Encoding.UTF8.GetChars(msg);
 
-        for(int i=index; i < chars.Length; i++)
+        for (var i = index; i < chars.Length; i++)
         {
-            if(chars[i] == ',')
-            {
-                address = string.Join("", chars.SubArray(index, i - index));
-                break;
-            }
+            if (chars[i] != ',') continue;
+            address = string.Join("", chars[index..i]);
+            break;
         }
 
         return address.Replace("\0", "");
@@ -227,14 +228,14 @@ public abstract class OscPacket
 
     private static char[] getTypes(byte[] msg, int index)
     {
-        int i = index + 4;
+        var i = index + 4;
         char[] types = null;
 
         for (; i <= msg.Length; i += 4)
         {
             if (msg[i - 1] == 0)
             {
-                types = Encoding.ASCII.GetChars(msg.SubArray(index, i - index));
+                types = Encoding.ASCII.GetChars(msg[index..i]);
                 break;
             }
         }
@@ -245,70 +246,46 @@ public abstract class OscPacket
         return types;
     }
 
-    private static int getInt(byte[] msg, int index)
-    {
-        int val = (msg[index] << 24) + (msg[index + 1] << 16) + (msg[index + 2] << 8) + (msg[index + 3] << 0);
-        return val;
-    }
+    private static int getInt(ReadOnlySpan<byte> msg, int index) =>
+        BinaryPrimitives.ReadInt32BigEndian(msg.Slice(index, 4));
 
-    private static float getFloat(byte[] msg, int index)
+
+    private static float getFloat(ReadOnlySpan<byte> msg, int index)
     {
         byte[] reversed = new byte[4];
         reversed[3] = msg[index];
         reversed[2] = msg[index + 1];
         reversed[1] = msg[index + 2];
         reversed[0] = msg[index + 3];
-        float val = System.BitConverter.ToSingle(reversed, 0);
+        float val = BitConverter.ToSingle(reversed, 0);
         return val;
     }
 
     private static string getString(byte[] msg, int index)
     {
-        string output = null;
-        int i = index + 4;
-        for (; (i - 1) < msg.Length; i += 4)
+        string? output = null;
+        var i = index + 4;
+        for (; i - 1 < msg.Length; i += 4)
         {
-            if (msg[i - 1] == 0)
-            {
-                output = Encoding.UTF8.GetString(msg.SubArray(index, i - index));
-                break;
-            }
+            if (msg[i - 1] != 0) continue;
+            output = Encoding.UTF8.GetString(msg[index..i]);
+            break;
         }
 
         if (i >= msg.Length && output == null)
             throw new Exception("No null terminator after type string");
 
-        return output.Replace("\0", "");
+        return output?.Replace("\0", "") ?? string.Empty;
     }
 
-    private static byte[] getBlob(byte[] msg, int index)
+    private static ReadOnlySpan<byte> getBlob(ReadOnlySpan<byte> msg, int index)
     {
-        int size = getInt(msg, index);
-        return msg.SubArray(index + 4, size);
+        var size = getInt(msg, index);
+        return msg[(index + 4)..(index + 4 + size)];
     }
 
-    private static UInt64 getULong(byte[] msg, int index)
-    {
-        UInt64 val = ((UInt64)msg[index] << 56) + ((UInt64)msg[index + 1] << 48) + ((UInt64)msg[index + 2] << 40) + ((UInt64)msg[index + 3] << 32)
-                     + ((UInt64)msg[index + 4] << 24) + ((UInt64)msg[index + 5] << 16) + ((UInt64)msg[index + 6] << 8) + ((UInt64)msg[index + 7] << 0);
-        return val;
-    }
-
-    private static Int64 getLong(byte[] msg, int index)
-    {
-        byte[] var = new byte[8];
-        var[7] = msg[index];
-        var[6] = msg[index + 1];
-        var[5] = msg[index + 2];
-        var[4] = msg[index + 3];
-        var[3] = msg[index + 4];
-        var[2] = msg[index + 5];
-        var[1] = msg[index + 6];
-        var[0] = msg[index + 7];
-
-        Int64 val = BitConverter.ToInt64(var, 0);
-        return val;
-    }
+    private static ulong getULong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadUInt64BigEndian(msg.Slice(index, 8));
+    private static long getLong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadInt64BigEndian(msg.Slice(index, 8));
 
     private static double getDouble(byte[] msg, int index)
     {

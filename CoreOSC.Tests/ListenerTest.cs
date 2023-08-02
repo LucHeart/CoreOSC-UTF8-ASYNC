@@ -94,4 +94,21 @@ public class ListenerTest
         Assert.Equal("/test/", received.Address);
         Assert.Equal("⚡", received.Arguments[0]);
     }
+    
+    /// <summary>
+    /// Single message receive with utf8 content
+    /// </summary>
+    [Fact(Timeout = 1000)]
+    public async Task ListenerUtf8_2()
+    {
+        var endpoint = TestUtils.GetNextEndpoint();
+        using var listener = new UdpListener(endpoint);
+        using var sender = new UdpSender(endpoint);
+    
+        var msg = new OscMessage("/test/", "There is a thunderstorm ⚡ brewing in the ☁");
+        await sender.SendAsync(msg);
+        var received = (await listener.ReceiveAsync()).AsT0;
+        Assert.Equal("/test/", received.Address);
+        Assert.Equal("There is a thunderstorm ⚡ brewing in the ☁", received.Arguments[0]);
+    }
 }

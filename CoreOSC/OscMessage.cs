@@ -84,7 +84,7 @@ public class OscMessage : OscPacket
 
                 case Symbol symbolValue:
                     typeString += "S";
-                    parts.Add(setString(symbolValue.Value));
+                    parts.Add(symbolValue.ToBytes());
                     break;
 
                 case char charValue:

@@ -4,18 +4,12 @@ namespace LucHeart.CoreOSC;
 
 public struct Timetag
 {
-    public UInt64 Tag;
+    public ulong Tag;
 
     public DateTime Timestamp
     {
-        get
-        {
-            return Utils.TimetagToDateTime(Tag);
-        }
-        set
-        {
-            Tag = Utils.DateTimeToTimetag(value);
-        }
+        get => Utils.TimetagToDateTime(Tag);
+        set => Tag = Utils.DateTimeToTimetag(value);
     }
 
     /// <summary>
@@ -24,65 +18,29 @@ public struct Timetag
     /// </summary>
     public double Fraction
     {
-        get
-        {
-            return Utils.TimetagToFraction(Tag);
-        }
-        set
-        {
-            Tag = (Tag & 0xFFFFFFFF00000000) + (UInt32)(value * 0xFFFFFFFF);
-        }
+        get => Utils.TimetagToFraction(Tag);
+        set => Tag = (Tag & 0xFFFFFFFF00000000) + (uint)(value * 0xFFFFFFFF);
     }
 
-    public Timetag(UInt64 value)
+    public Timetag(ulong value)
     {
-        this.Tag = value;
+        Tag = value;
     }
 
     public Timetag(DateTime value)
     {
         Tag = 0;
-        this.Timestamp = value;
+        Timestamp = value;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object? obj) => obj switch
     {
-        if (obj is Timetag timetag)
-        {
-            if (this.Tag == timetag.Tag)
-                return true;
-            else
-                return false;
-        }
-        else if (obj is ulong @ulong)
-        {
-            if (this.Tag == @ulong)
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
-
-    public static bool operator ==(Timetag a, Timetag b)
-    {
-        if (a.Equals(b))
-            return true;
-        else
-            return false;
-    }
-
-    public static bool operator !=(Timetag a, Timetag b)
-    {
-        if (a.Equals(b))
-            return true;
-        else
-            return false;
-    }
-
-    public override int GetHashCode()
-    {
-        return (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
-    }
+        Timetag timeTag => Tag == timeTag.Tag,
+        ulong ulongValue => Tag == ulongValue,
+        _ => false
+    };
+    
+    public static bool operator ==(Timetag a, Timetag b) => a.Equals(b);
+    public static bool operator !=(Timetag a, Timetag b) => a.Equals(b);
+    public override int GetHashCode() => (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
 }

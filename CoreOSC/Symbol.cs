@@ -1,62 +1,38 @@
-﻿namespace LucHeart.CoreOSC;
+﻿using System.Text;
 
-public class Symbol
+namespace LucHeart.CoreOSC;
+
+public readonly struct Symbol : IOscSerializable
 {
-    public string Value;
-
-    public Symbol()
-    {
-        Value = "";
-    }
+    public readonly string Value;
 
     public Symbol(string value)
     {
-        this.Value = value;
+        Value = value;
     }
 
-    public override string ToString()
+    public override string ToString() => Value;
+    public byte[] ToBytes()
     {
-        return Value;
+        var bytes = Encoding.UTF8.GetBytes(Value);
+
+        var msg = new byte[(bytes.Length / 4 + 1) * 4];
+        bytes.CopyTo(msg, 0);
+
+        return msg;
     }
 
-    public override bool Equals(System.Object obj)
+    public override bool Equals(object obj) => obj switch
     {
-        if (obj.GetType() == typeof(Symbol))
-        {
-            if (this.Value == ((Symbol)obj).Value)
-                return true;
-            else
-                return false;
-        }
-        else if (obj.GetType() == typeof(string))
-        {
-            if (this.Value == ((string)obj))
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    }
+        Symbol symbol => Value == symbol.Value,
+        string stringObj => Value == stringObj,
+        _ => false
+    };
 
-    public static bool operator ==(Symbol a, Symbol b)
-    {
-        if (a.Equals(b))
-            return true;
-        else
-            return false;
-    }
+    public static bool operator ==(Symbol a, Symbol b) => a.Equals(b);
 
-    public static bool operator !=(Symbol a, Symbol b)
-    {
-        if (!a.Equals(b))
-            return true;
-        else
-            return false;
-    }
+    public static bool operator !=(Symbol a, Symbol b) => !a.Equals(b);
 
-    public override int GetHashCode()
-    {
-        return Value.GetHashCode();
-    }
+    public override int GetHashCode() => Value.GetHashCode();
+    
 }
