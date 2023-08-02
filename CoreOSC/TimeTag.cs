@@ -2,14 +2,14 @@
 
 namespace LucHeart.CoreOSC;
 
-public struct Timetag
+public struct TimeTag
 {
     public ulong Tag;
 
     public DateTime Timestamp
     {
-        get => Utils.TimetagToDateTime(Tag);
-        set => Tag = Utils.DateTimeToTimetag(value);
+        get => Utils.TimeTagToDateTime(Tag);
+        set => Tag = Utils.DateTimeToTimeTag(value);
     }
 
     /// <summary>
@@ -18,16 +18,16 @@ public struct Timetag
     /// </summary>
     public double Fraction
     {
-        get => Utils.TimetagToFraction(Tag);
+        get => Utils.TimeTagToFraction(Tag);
         set => Tag = (Tag & 0xFFFFFFFF00000000) + (uint)(value * 0xFFFFFFFF);
     }
 
-    public Timetag(ulong value)
+    public TimeTag(ulong value)
     {
         Tag = value;
     }
 
-    public Timetag(DateTime value)
+    public TimeTag(DateTime value)
     {
         Tag = 0;
         Timestamp = value;
@@ -35,12 +35,12 @@ public struct Timetag
 
     public override bool Equals(object? obj) => obj switch
     {
-        Timetag timeTag => Tag == timeTag.Tag,
+        TimeTag timeTag => Tag == timeTag.Tag,
         ulong ulongValue => Tag == ulongValue,
         _ => false
     };
     
-    public static bool operator ==(Timetag a, Timetag b) => a.Equals(b);
-    public static bool operator !=(Timetag a, Timetag b) => a.Equals(b);
+    public static bool operator ==(TimeTag a, TimeTag b) => a.Equals(b);
+    public static bool operator !=(TimeTag a, TimeTag b) => a.Equals(b);
     public override int GetHashCode() => (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
 }

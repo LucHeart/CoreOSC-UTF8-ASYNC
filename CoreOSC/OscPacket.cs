@@ -95,7 +95,7 @@ public abstract class OscPacket
 
                 case 't':
                     var sval = getULong(msgSpan, index);
-                    arguments.Add(new Timetag(sval));
+                    arguments.Add(new TimeTag(sval));
                     index += 8;
                     break;
 
@@ -287,8 +287,10 @@ public abstract class OscPacket
     private static ulong getULong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadUInt64BigEndian(msg.Slice(index, 8));
     private static long getLong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadInt64BigEndian(msg.Slice(index, 8));
 
-    private static double getDouble(byte[] msg, int index)
+    private static double getDouble(Span<byte> msg, int index)
     {
+        msg[index..(index + 8)].Reverse();
+        
         byte[] var = new byte[8];
         var[7] = msg[index];
         var[6] = msg[index + 1];

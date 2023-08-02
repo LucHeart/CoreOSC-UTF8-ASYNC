@@ -34,13 +34,13 @@ public class ParseTest
     public void TestTimetag()
     {
         var val = DateTime.Now;
-        var tag = new Timetag(val);
+        var tag = new TimeTag(val);
 
         var msg = new OscMessage("/test/1", tag);
         var bytes = msg.GetBytes();
 
         var msg2 = OscPacket.GetPacket(bytes).AsT0;
-        Assert.Equal(tag.Tag, ((Timetag)msg2.Arguments[0]!).Tag);
+        Assert.Equal(tag.Tag, ((TimeTag)msg2.Arguments[0]!).Tag);
     }
 
     [Fact]

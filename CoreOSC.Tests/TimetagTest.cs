@@ -11,7 +11,7 @@ public class TimetagTest
         var time = (ulong) 60 * 60 * 24 * 365 * 108;
         time <<= 32;
         time += (ulong)(Math.Pow(2, 32) / 2);
-        var date = Utils.TimetagToDateTime(time);
+        var date = Utils.TimeTagToDateTime(time);
 
         Assert.Equal(DateTime.Parse("2007-12-06 00:00:00.500"), date);
     }
@@ -21,8 +21,8 @@ public class TimetagTest
     {
         var dt = DateTime.UtcNow;
 
-        var l = Utils.DateTimeToTimetag(dt);
-        var dtBack = Utils.TimetagToDateTime(l);
+        var l = Utils.DateTimeToTimeTag(dt);
+        var dtBack = Utils.TimeTagToDateTime(l);
 
         Assert.Equal(dt.Date, dtBack.Date);
         Assert.Equal(dt.Hour, dtBack.Hour);

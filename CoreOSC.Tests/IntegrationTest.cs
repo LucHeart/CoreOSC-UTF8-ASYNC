@@ -22,8 +22,8 @@ public class IntegrationTest
             "hello world",
             new byte[] { 2, 3, 4 },
             -123456789123,
-            new Timetag(DateTime.Now.Date).Tag,
-            new Timetag(DateTime.Now.Date.AddMonths(1)),
+            new TimeTag(DateTime.Now.Date).Tag,
+            new TimeTag(DateTime.Now.Date.AddMonths(1)),
             1234567.890,
             new Symbol("wut wut"),
             'x',
@@ -49,8 +49,8 @@ public class IntegrationTest
         Assert.Equal("hello world", msgRevc.Arguments[2]);
         Assert.Equal(new byte[] { 2, 3, 4 }, msgRevc.Arguments[3]);
         Assert.Equal(-123456789123, msgRevc.Arguments[4]);
-        Assert.Equal(new Timetag(DateTime.Now.Date), msgRevc.Arguments[5]);
-        Assert.Equal(new Timetag(DateTime.Now.Date.AddMonths(1)), msgRevc.Arguments[6]);
+        Assert.Equal(new TimeTag(DateTime.Now.Date), msgRevc.Arguments[5]);
+        Assert.Equal(new TimeTag(DateTime.Now.Date.AddMonths(1)), msgRevc.Arguments[6]);
         Assert.Equal(1234567.890, msgRevc.Arguments[7]);
         Assert.Equal(new Symbol("wut wut"), msgRevc.Arguments[8]);
         Assert.Equal('x', msgRevc.Arguments[9]);
@@ -71,7 +71,7 @@ public class IntegrationTest
         var msg1 = new OscMessage("/test/address1", 23, 42.42f, "hello world", new byte[] { 2, 3, 4 });
         var msg2 = new OscMessage("/test/address2", 34, 24.24f, "hello again", new byte[] { 5, 6, 7, 8, 9 });
         var dt = DateTime.Now;
-        var bundle = new OscBundle(Utils.DateTimeToTimetag(dt), msg1, msg2);
+        var bundle = new OscBundle(Utils.DateTimeToTimeTag(dt), msg1, msg2);
 
         await sender1.SendAsync(bundle);
         await sender1.SendAsync(bundle);

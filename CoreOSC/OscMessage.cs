@@ -67,7 +67,7 @@ public class OscMessage : OscPacket
                     parts.Add(setULong(ulongValue));
                     break;
 
-                case Timetag timeTagValue:
+                case TimeTag timeTagValue:
                     typeStringBuilder.Append("t");
                     parts.Add(setULong(timeTagValue.Tag));
                     break;

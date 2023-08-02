@@ -1,6 +1,6 @@
 ﻿namespace LucHeart.CoreOSC;
 
-// ReSharper disable once InconsistentNaming
+// ReSharper disable InconsistentNaming, MemberCanBePrivate.Global
 public readonly struct RGBA : IOscSerializable
 {
     public readonly byte R;
@@ -16,7 +16,7 @@ public readonly struct RGBA : IOscSerializable
         A = alpha;
     }
 
-    public override bool Equals(object obj) => obj switch
+    public override bool Equals(object? obj) => obj switch
     {
         RGBA rgba => R == rgba.R && G == rgba.G && B == rgba.B && A == rgba.A,
         byte[] byteObj => R == byteObj[0] && G == byteObj[1] && B == byteObj[2] && A == byteObj[3],

@@ -7,25 +7,25 @@ namespace LucHeart.CoreOSC;
 
 public class OscBundle : OscPacket
 {
-    private Timetag _timetag;
+    private TimeTag _timeTag;
 
-    public UInt64 Timetag
+    public ulong Timetag
     {
-        get { return _timetag.Tag; }
-        set { _timetag.Tag = value; }
+        get => _timeTag.Tag;
+        set => _timeTag.Tag = value;
     }
 
     public DateTime Timestamp
     {
-        get { return _timetag.Timestamp; }
-        set { _timetag.Timestamp = value; }
+        get { return _timeTag.Timestamp; }
+        set { _timeTag.Timestamp = value; }
     }
 
     public List<OscMessage> Messages;
 
     public OscBundle(UInt64 timetag, params OscMessage[] args)
     {
-        _timetag = new Timetag(timetag);
+        _timeTag = new TimeTag(timetag);
         Messages = new List<OscMessage>();
         Messages.AddRange(args);
     }
@@ -34,7 +34,7 @@ public class OscBundle : OscPacket
     {
         string bundle = "#bundle";
         int bundleTagLen = Utils.AlignedStringLength(bundle);
-        byte[] tag = setULong(_timetag.Tag);
+        byte[] tag = setULong(_timeTag.Tag);
 
         List<byte[]> outMessages = new List<byte[]>();
         foreach (OscMessage msg in Messages)

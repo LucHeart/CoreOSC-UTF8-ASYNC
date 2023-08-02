@@ -22,7 +22,7 @@ public readonly struct Symbol : IOscSerializable
         return msg;
     }
 
-    public override bool Equals(object obj) => obj switch
+    public override bool Equals(object? obj) => obj switch
     {
         Symbol symbol => Value == symbol.Value,
         string stringObj => Value == stringObj,
