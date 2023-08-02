@@ -94,7 +94,7 @@ public class OscMessage : OscPacket
 
                 case RGBA rgbaValue:
                     typeString += "r";
-                    parts.Add(setRGBA(rgbaValue));
+                    parts.Add(rgbaValue.ToBytes());
                     break;
 
                 case Midi midiValue:

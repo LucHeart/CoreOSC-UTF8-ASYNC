@@ -10,8 +10,8 @@ public abstract class OscPacket
     public static OneOf<OscMessage, OscBundle> GetPacket(byte[] oscData)
     {
         if (oscData[0] == '#')
-            return parseBundle(oscData);
-        return parseMessage(oscData);
+            return ParseBundle(oscData);
+        return ParseMessage(oscData);
     }
 
     public abstract byte[] GetBytes();
@@ -23,30 +23,28 @@ public abstract class OscPacket
     /// </summary>
     /// <param name="msg"></param>
     /// <returns>Message containing various arguments and an address</returns>
-    private static OscMessage parseMessage(byte[] msg)
+    private static OscMessage ParseMessage(byte[] msg)
     {
-        int index = 0;
-
-        string address = null;
-        char[] types = new char[0];
-        List<object> arguments = new List<object>();
-        List<object> mainArray = arguments; // used as a reference when we are parsing arrays to get the main array back
+        var index = 0;
+        
+        var arguments = new List<object?>();
+        var mainArray = arguments; // used as a reference when we are parsing arrays to get the main array back
 
         // Get address
-        address = getAddress(msg, index);
+        var address = getAddress(msg, index);
         index += msg.FirstIndexAfter(address.Length, x => x == ',');
 
         if (index % 4 != 0)
             throw new Exception("Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");
 
         // Get type tags
-        types = getTypes(msg, index);
+        var types = getTypes(msg, index);
         index += types.Length;
 
         while (index % 4 != 0)
             index++;
 
-        bool commaParsed = false;
+        var commaParsed = false;
 
         foreach (var type in types)
         {
@@ -63,67 +61,67 @@ public abstract class OscPacket
                     break;
 
                 case 'i':
-                    int intVal = getInt(msg, index);
+                    var intVal = getInt(msg, index);
                     arguments.Add(intVal);
                     index += 4;
                     break;
 
                 case 'f':
-                    float floatVal = getFloat(msg, index);
+                    var floatVal = getFloat(msg, index);
                     arguments.Add(floatVal);
                     index += 4;
                     break;
 
                 case 's':
-                    string stringVal = getString(msg, index);
+                    var stringVal = getString(msg, index);
                     arguments.Add(stringVal);
                     index += Encoding.UTF8.GetBytes(stringVal).Length;
                     break;
 
                 case 'b':
-                    byte[] blob = getBlob(msg, index);
+                    var blob = getBlob(msg, index);
                     arguments.Add(blob);
                     index += 4 + blob.Length;
                     break;
 
                 case 'h':
-                    Int64 hval = getLong(msg, index);
+                    var hval = getLong(msg, index);
                     arguments.Add(hval);
                     index += 8;
                     break;
 
                 case 't':
-                    UInt64 sval = getULong(msg, index);
+                    var sval = getULong(msg, index);
                     arguments.Add(new Timetag(sval));
                     index += 8;
                     break;
 
                 case 'd':
-                    double dval = getDouble(msg, index);
+                    var dval = getDouble(msg, index);
                     arguments.Add(dval);
                     index += 8;
                     break;
 
                 case 'S':
-                    string SymbolVal = getString(msg, index);
-                    arguments.Add(new Symbol(SymbolVal));
-                    index += SymbolVal.Length;
+                    var symbolVal = getString(msg, index);
+                    arguments.Add(new Symbol(symbolVal));
+                    index += symbolVal.Length;
                     break;
 
                 case 'c':
-                    char cval = getChar(msg, index);
+                    var cval = getChar(msg, index);
                     arguments.Add(cval);
                     index += 4;
                     break;
 
                 case 'r':
-                    RGBA rgbaval = getRGBA(msg, index);
+                    var rgbaval = getRGBA(msg, index);
                     arguments.Add(rgbaval);
                     index += 4;
                     break;
 
                 case 'm':
-                    Midi midival = getMidi(msg, index);
+                    var midival = getMidi(msg, index);
                     arguments.Add(midival);
                     index += 4;
                     break;
@@ -146,8 +144,8 @@ public abstract class OscPacket
 
                 case '[':
                     if (arguments != mainArray)
-                        throw new Exception("SharopOSC does not support nested arrays");
-                    arguments = new List<object>(); // make arguments point to a new object array
+                        throw new Exception("CoreOSC does not support nested arrays");
+                    arguments = new List<object?>(); // make arguments point to a new object array
                     break;
 
                 case ']':
@@ -171,7 +169,7 @@ public abstract class OscPacket
     /// </summary>
     /// <param name="bundle"></param>
     /// <returns>Bundle containing elements and a timetag</returns>
-    private static OscBundle parseBundle(byte[] bundle)
+    private static OscBundle ParseBundle(byte[] bundle)
     {
         ulong timetag;
         var messages = new List<OscMessage>();
@@ -189,11 +187,11 @@ public abstract class OscPacket
 
         while (index < bundle.Length)
         {
-            int size = getInt(bundle, index);
+            var size = getInt(bundle, index);
             index += 4;
 
-            byte[] messageBytes = bundle.SubArray(index, size);
-            var message = parseMessage(messageBytes);
+            var messageBytes = bundle.SubArray(index, size);
+            var message = ParseMessage(messageBytes);
 
             messages.Add(message);
 
@@ -202,7 +200,7 @@ public abstract class OscPacket
                 index++;
         }
 
-        OscBundle output = new OscBundle(timetag, messages.ToArray());
+        var output = new OscBundle(timetag, messages.ToArray());
         return output;
     }
 
@@ -447,16 +445,6 @@ public abstract class OscPacket
         output[1] = 0;
         output[2] = 0;
         output[3] = (byte)value;
-        return output;
-    }
-
-    protected static byte[] setRGBA(RGBA value)
-    {
-        byte[] output = new byte[4];
-        output[0] = value.R;
-        output[1] = value.G;
-        output[2] = value.B;
-        output[3] = value.A;
         return output;
     }
 

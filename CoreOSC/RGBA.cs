@@ -1,7 +1,7 @@
 ﻿namespace LucHeart.CoreOSC;
 
 // ReSharper disable once InconsistentNaming
-public readonly struct RGBA
+public readonly struct RGBA : IOscSerializable
 {
     public readonly byte R;
     public readonly byte G;
@@ -23,7 +23,17 @@ public readonly struct RGBA
         _ => false
     };
 
-    public static bool operator == (RGBA a, RGBA b) => a.Equals(b);
-    public static bool operator != (RGBA a, RGBA b) => !a.Equals(b);
+    public static bool operator ==(RGBA a, RGBA b) => a.Equals(b);
+    public static bool operator !=(RGBA a, RGBA b) => !a.Equals(b);
     public override int GetHashCode() => (R << 24) + (G << 16) + (B << 8) + A;
+
+    public byte[] ToBytes()
+    {
+        var output = new byte[4];
+        output[0] = R;
+        output[1] = G;
+        output[2] = B;
+        output[3] = A;
+        return output;
+    }
 }
