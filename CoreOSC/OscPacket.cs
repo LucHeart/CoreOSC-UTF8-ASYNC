@@ -289,8 +289,7 @@ public abstract class OscPacket
 
     private static double getDouble(Span<byte> msg, int index)
     {
-        msg[index..(index + 8)].Reverse();
-        
+
         byte[] var = new byte[8];
         var[7] = msg[index];
         var[6] = msg[index + 1];
