@@ -53,7 +53,7 @@ public class OscBundle : OscPacket
 
         foreach (byte[] msg in outMessages)
         {
-            var size = setInt(msg.Length);
+            var size = SetInt(msg.Length);
             size.CopyTo(output, i);
             i += size.Length;
 

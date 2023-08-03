@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using OneOf;
 
@@ -24,24 +25,22 @@ public abstract class OscPacket
     /// </summary>
     /// <param name="msg"></param>
     /// <returns>Message containing various arguments and an address</returns>
-    private static OscMessage ParseMessage(byte[] msg)
+    private static OscMessage ParseMessage(Span<byte> msg)
     {
-        ReadOnlySpan<byte> msgSpan = msg.AsSpan();
-        var index = 0;
+        ReadOnlySpan<byte> msgReadOnlySpan = msg;
 
         var arguments = new List<object?>();
         var mainArray = arguments; // used as a reference when we are parsing arrays to get the main array back
 
         // Get address
-        var address = getAddress(msg, index);
-        index += msg.FirstIndexAfter(address.Length, x => x == ',');
+        var address = GetAddress(msgReadOnlySpan, out var index);
 
         if (index % 4 != 0)
             throw new Exception(
                 "Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");
 
         // Get type tags
-        var types = getTypes(msg, index);
+        var types = GetTypes(msgReadOnlySpan, index);
         index += types.Length;
 
         while (index % 4 != 0)
@@ -52,7 +51,7 @@ public abstract class OscPacket
         foreach (var type in types)
         {
             // skip leading comma
-            if (type == ',' && !commaParsed)
+            if (type == DividerChar && !commaParsed)
             {
                 commaParsed = true;
                 continue;
@@ -64,67 +63,67 @@ public abstract class OscPacket
                     break;
 
                 case 'i':
-                    var intVal = getInt(msgSpan, index);
+                    var intVal = GetInt(msgReadOnlySpan, index);
                     arguments.Add(intVal);
                     index += 4;
                     break;
 
                 case 'f':
-                    var floatVal = getFloat(msgSpan, index);
+                    var floatVal = GetFloat(msg, index);
                     arguments.Add(floatVal);
                     index += 4;
                     break;
 
                 case 's':
-                    var stringVal = getString(msg, index);
+                    var stringVal = GetString(msgReadOnlySpan, index);
                     arguments.Add(stringVal);
                     index += Encoding.UTF8.GetBytes(stringVal).Length;
                     break;
 
                 case 'b':
-                    var blob = getBlob(msgSpan, index);
+                    var blob = GetBlob(msgReadOnlySpan, index);
                     arguments.Add(blob.ToArray());
                     index += 4 + blob.Length;
                     break;
 
                 case 'h':
-                    var hval = getLong(msgSpan, index);
+                    var hval = GetLong(msgReadOnlySpan, index);
                     arguments.Add(hval);
                     index += 8;
                     break;
 
                 case 't':
-                    var sval = getULong(msgSpan, index);
+                    var sval = GetULong(msgReadOnlySpan, index);
                     arguments.Add(new TimeTag(sval));
                     index += 8;
                     break;
 
                 case 'd':
-                    var dval = getDouble(msg, index);
+                    var dval = GetDouble(msg, index);
                     arguments.Add(dval);
                     index += 8;
                     break;
 
                 case 'S':
-                    var symbolVal = getString(msg, index);
+                    var symbolVal = GetString(msgReadOnlySpan, index);
                     arguments.Add(new Symbol(symbolVal));
                     index += symbolVal.Length;
                     break;
 
                 case 'c':
-                    var cval = getChar(msg, index);
+                    var cval = GetChar(msg, index);
                     arguments.Add(cval);
                     index += 4;
                     break;
 
                 case 'r':
-                    var rgbaval = getRGBA(msg, index);
+                    var rgbaval = GetRgba(msg, index);
                     arguments.Add(rgbaval);
                     index += 4;
                     break;
 
                 case 'm':
-                    var midival = getMidi(msg, index);
+                    var midival = GetMidi(msg, index);
                     arguments.Add(midival);
                     index += 4;
                     break;
@@ -170,32 +169,31 @@ public abstract class OscPacket
     /// <summary>
     /// Takes in an OSC bundle package in byte form and parses it into a more usable OscBundle object
     /// </summary>
-    /// <param name="bundle"></param>
+    /// <param name="msg"></param>
     /// <returns>Bundle containing elements and a timetag</returns>
-    private static OscBundle ParseBundle(byte[] bundle)
+    private static OscBundle ParseBundle(Span<byte> msg)
     {
-        ulong timetag;
+        ReadOnlySpan<byte> msgReadOnly = msg;
         var messages = new List<OscMessage>();
 
-        int index = 0;
+        var index = 0;
 
-        var bundleTag = Encoding.ASCII.GetString(bundle[..8]);
+        var bundleTag = Encoding.ASCII.GetString(msgReadOnly[..8]);
         index += 8;
 
-        timetag = getULong(bundle, index);
+        var timeTag = GetULong(msgReadOnly, index);
         index += 8;
 
         if (bundleTag != "#bundle\0")
             throw new Exception("Not a bundle");
 
-        while (index < bundle.Length)
+        while (index < msgReadOnly.Length)
         {
-            var size = getInt(bundle, index);
+            var size = GetInt(msgReadOnly, index);
             index += 4;
 
-            var messageBytes = bundle[index..(index + size)];
+            var messageBytes = msg.Slice(index, size);
             var message = ParseMessage(messageBytes);
-
             messages.Add(message);
 
             index += size;
@@ -203,7 +201,7 @@ public abstract class OscPacket
                 index++;
         }
 
-        var output = new OscBundle(timetag, messages.ToArray());
+        var output = new OscBundle(timeTag, messages.ToArray());
         return output;
     }
 
@@ -211,128 +209,78 @@ public abstract class OscPacket
 
     #region Get arguments from byte array
 
-    private static string getAddress(byte[] msg, int index)
+    private const byte DividerChar = 44;
+
+    private static string GetAddress(ReadOnlySpan<byte> msg, out int index)
     {
-        var address = "";
-        var chars = Encoding.UTF8.GetChars(msg);
-
-        for (var i = index; i < chars.Length; i++)
-        {
-            if (chars[i] != ',') continue;
-            address = string.Join("", chars[index..i]);
-            break;
-        }
-
+        index = msg.IndexOf(DividerChar);
+        if (index == -1) throw new Exception("Could not get address from data");
+        var address = Encoding.ASCII.GetString(msg[..index]);
         return address.Replace("\0", "");
     }
 
-    private static char[] getTypes(byte[] msg, int index)
+    private static ReadOnlySpan<char> GetTypes(ReadOnlySpan<byte> msg, int index)
     {
         var i = index + 4;
-        char[] types = null;
 
         for (; i <= msg.Length; i += 4)
         {
-            if (msg[i - 1] == 0)
-            {
-                types = Encoding.ASCII.GetChars(msg[index..i]);
-                break;
-            }
+            if (msg[i - 1] != 0) continue;
+            var charSet = msg[index..i];
+            var newSpan = new char[Encoding.ASCII.GetMaxCharCount(charSet.Length)].AsSpan();
+            Encoding.ASCII.GetChars(charSet, newSpan);
+            return newSpan;
         }
 
-        if (i >= msg.Length && types == null)
-            throw new Exception("No null terminator after type string");
-
-        return types;
+        throw new Exception("No null terminator after type string");
     }
 
-    private static int getInt(ReadOnlySpan<byte> msg, int index) =>
+    private static int GetInt(ReadOnlySpan<byte> msg, int index) =>
         BinaryPrimitives.ReadInt32BigEndian(msg.Slice(index, 4));
 
+    private static float GetFloat(Span<byte> msg, int index) => BitConverter.ToSingle(msg.ReverseSlice(index, 4));
 
-    private static float getFloat(ReadOnlySpan<byte> msg, int index)
+    private static string GetString(ReadOnlySpan<byte> msg, int index)
     {
-        byte[] reversed = new byte[4];
-        reversed[3] = msg[index];
-        reversed[2] = msg[index + 1];
-        reversed[1] = msg[index + 2];
-        reversed[0] = msg[index + 3];
-        float val = BitConverter.ToSingle(reversed, 0);
-        return val;
-    }
-
-    private static string getString(byte[] msg, int index)
-    {
-        string? output = null;
         var i = index + 4;
         for (; i - 1 < msg.Length; i += 4)
         {
             if (msg[i - 1] != 0) continue;
-            output = Encoding.UTF8.GetString(msg[index..i]);
-            break;
+            return Encoding.UTF8.GetString(msg[index..i]).Replace("\0", "");
         }
-
-        if (i >= msg.Length && output == null)
-            throw new Exception("No null terminator after type string");
-
-        return output?.Replace("\0", "") ?? string.Empty;
+        
+        throw new Exception("No null terminator after type string");
     }
 
-    private static ReadOnlySpan<byte> getBlob(ReadOnlySpan<byte> msg, int index)
+    private static ReadOnlySpan<byte> GetBlob(ReadOnlySpan<byte> msg, int index)
     {
-        var size = getInt(msg, index);
-        return msg[(index + 4)..(index + 4 + size)];
+        var size = GetInt(msg, index);
+        return msg.Slice(index + 4, size);
     }
 
-    private static ulong getULong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadUInt64BigEndian(msg.Slice(index, 8));
-    private static long getLong(ReadOnlySpan<byte> msg, int index) => BinaryPrimitives.ReadInt64BigEndian(msg.Slice(index, 8));
+    private static ulong GetULong(ReadOnlySpan<byte> msg, int index) =>
+        BinaryPrimitives.ReadUInt64BigEndian(msg.Slice(index, 8));
 
-    private static double getDouble(Span<byte> msg, int index)
-    {
+    private static long GetLong(ReadOnlySpan<byte> msg, int index) =>
+        BinaryPrimitives.ReadInt64BigEndian(msg.Slice(index, 8));
 
-        byte[] var = new byte[8];
-        var[7] = msg[index];
-        var[6] = msg[index + 1];
-        var[5] = msg[index + 2];
-        var[4] = msg[index + 3];
-        var[3] = msg[index + 4];
-        var[2] = msg[index + 5];
-        var[1] = msg[index + 6];
-        var[0] = msg[index + 7];
+    private static double GetDouble(Span<byte> msg, int index) => BitConverter.ToDouble(msg.ReverseSlice(index, 8));
+    private static char GetChar(ReadOnlySpan<byte> msg, int index) => (char)msg[index + 3];
 
-        double val = BitConverter.ToDouble(var, 0);
-        return val;
-    }
+    private static RGBA GetRgba(ReadOnlySpan<byte> msg, int index) =>
+        new(msg[index], msg[index + 1], msg[index + 2], msg[index + 3]);
 
-    private static char getChar(byte[] msg, int index)
-    {
-        return (char)msg[index + 3];
-    }
-
-    private static RGBA getRGBA(byte[] msg, int index)
-    {
-        return new RGBA(msg[index], msg[index + 1], msg[index + 2], msg[index + 3]);
-    }
-
-    private static Midi getMidi(byte[] msg, int index)
-    {
-        return new Midi(msg[index], msg[index + 1], msg[index + 2], msg[index + 3]);
-    }
+    private static Midi GetMidi(ReadOnlySpan<byte> msg, int index) =>
+        new(msg[index], msg[index + 1], msg[index + 2], msg[index + 3]);
 
     #endregion Get arguments from byte array
 
     #region Create byte arrays for arguments
 
-    protected static byte[] setInt(int value)
+    protected static byte[] SetInt(int value)
     {
-        byte[] msg = new byte[4];
-
-        var bytes = BitConverter.GetBytes(value);
-        msg[0] = bytes[3];
-        msg[1] = bytes[2];
-        msg[2] = bytes[1];
-        msg[3] = bytes[0];
-
+        var msg = new byte[4];
+        BinaryPrimitives.WriteInt32BigEndian(msg, value);
         return msg;
     }
 
@@ -363,7 +311,7 @@ public abstract class OscPacket
         len = len + (4 - len % 4);
 
         byte[] msg = new byte[len];
-        byte[] size = setInt(value.Length);
+        byte[] size = SetInt(value.Length);
         size.CopyTo(msg, 0);
         value.CopyTo(msg, 4);
         return msg;

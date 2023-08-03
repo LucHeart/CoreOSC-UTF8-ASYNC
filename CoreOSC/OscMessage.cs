@@ -34,7 +34,7 @@ public class OscMessage : OscPacket
             {
                 case int intValue:
                     typeStringBuilder.Append("i");
-                    parts.Add(setInt(intValue));
+                    parts.Add(SetInt(intValue));
                     break;
 
                 case float floatValue:
