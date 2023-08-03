@@ -34,7 +34,7 @@ public class OscBundle : OscPacket
     {
         string bundle = "#bundle";
         int bundleTagLen = Utils.AlignedStringLength(bundle);
-        byte[] tag = setULong(_timeTag.Tag);
+        byte[] tag = SetULong(_timeTag.Tag);
 
         List<byte[]> outMessages = new List<byte[]>();
         foreach (OscMessage msg in Messages)

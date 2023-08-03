@@ -248,7 +248,7 @@ public abstract class OscPacket
             if (msg[i - 1] != 0) continue;
             return Encoding.UTF8.GetString(msg[index..i]).Replace("\0", "");
         }
-        
+
         throw new Exception("No null terminator after type string");
     }
 
@@ -279,25 +279,28 @@ public abstract class OscPacket
 
     protected static byte[] SetInt(int value)
     {
-        var msg = new byte[4];
-        BinaryPrimitives.WriteInt32BigEndian(msg, value);
-        return msg;
+        var output = new byte[4];
+        BinaryPrimitives.WriteInt32BigEndian(output, value);
+        return output;
     }
 
-    protected static byte[] setFloat(float value)
+    protected static byte[] SetFloat(float value)
     {
-        byte[] msg = new byte[4];
-
-        var bytes = BitConverter.GetBytes(value);
-        msg[0] = bytes[3];
-        msg[1] = bytes[2];
-        msg[2] = bytes[1];
-        msg[3] = bytes[0];
-
-        return msg;
+        // ReSharper disable once RedundantAssignment
+        var output = new byte[4];
+#if NETSTANDARD2_1
+        var rev = BitConverter.GetBytes(value);
+        output[0] = rev[3];
+        output[1] = rev[2];
+        output[2] = rev[1];
+        output[3] = rev[0];
+# else
+        BinaryPrimitives.WriteSingleBigEndian(output, value);
+#endif
+        return output;
     }
 
-    protected static byte[] setString(string value)
+    protected static byte[] SetString(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);
         var msg = new byte[(bytes.Length / 4 + 1) * 4];
@@ -305,22 +308,36 @@ public abstract class OscPacket
         return msg;
     }
 
-    protected static byte[] setBlob(byte[] value)
+    protected static byte[] SetBlob(byte[] value)
     {
-        int len = value.Length + 4;
-        len = len + (4 - len % 4);
+        var len = value.Length + 4;
+        len += 4 - len % 4;
 
-        byte[] msg = new byte[len];
-        byte[] size = SetInt(value.Length);
-        size.CopyTo(msg, 0);
+        var msg = new byte[len];
+        BinaryPrimitives.WriteInt32BigEndian(msg, value.Length);
         value.CopyTo(msg, 4);
         return msg;
     }
 
-    protected static byte[] setLong(Int64 value)
+    protected static byte[] SetLong(long value)
     {
-        byte[] rev = BitConverter.GetBytes(value);
-        byte[] output = new byte[8];
+        var output = new byte[8];
+        BinaryPrimitives.WriteInt64BigEndian(output, value);
+        return output;
+    }
+
+    protected static byte[] SetULong(ulong value)
+    {
+        var output = new byte[8];
+        BinaryPrimitives.WriteUInt64BigEndian(output, value);
+        return output;
+    }
+
+    protected static byte[] SetDouble(double value)
+    {
+        var output = new byte[8];
+#if NETSTANDARD2_1
+        var rev = BitConverter.GetBytes(value);
         output[0] = rev[7];
         output[1] = rev[6];
         output[2] = rev[5];
@@ -329,42 +346,15 @@ public abstract class OscPacket
         output[5] = rev[2];
         output[6] = rev[1];
         output[7] = rev[0];
+#else
+        BinaryPrimitives.WriteDoubleBigEndian(output, value);
+#endif
         return output;
     }
 
-    protected static byte[] setULong(UInt64 value)
+    protected static byte[] SetChar(char value)
     {
-        byte[] rev = BitConverter.GetBytes(value);
-        byte[] output = new byte[8];
-        output[0] = rev[7];
-        output[1] = rev[6];
-        output[2] = rev[5];
-        output[3] = rev[4];
-        output[4] = rev[3];
-        output[5] = rev[2];
-        output[6] = rev[1];
-        output[7] = rev[0];
-        return output;
-    }
-
-    protected static byte[] setDouble(double value)
-    {
-        byte[] rev = BitConverter.GetBytes(value);
-        byte[] output = new byte[8];
-        output[0] = rev[7];
-        output[1] = rev[6];
-        output[2] = rev[5];
-        output[3] = rev[4];
-        output[4] = rev[3];
-        output[5] = rev[2];
-        output[6] = rev[1];
-        output[7] = rev[0];
-        return output;
-    }
-
-    protected static byte[] setChar(char value)
-    {
-        byte[] output = new byte[4];
+        var output = new byte[4];
         output[0] = 0;
         output[1] = 0;
         output[2] = 0;

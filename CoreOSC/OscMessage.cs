@@ -44,32 +44,32 @@ public class OscMessage : OscPacket
                         break;
                     }
                     typeStringBuilder.Append("f");
-                    parts.Add(setFloat(floatValue));
+                    parts.Add(SetFloat(floatValue));
                     break;
 
                 case string stringValue:
                     typeStringBuilder.Append("s");
-                    parts.Add(setString(stringValue));
+                    parts.Add(SetString(stringValue));
                     break;
 
                 case byte[] byteArrayValue:
                     typeStringBuilder.Append("b");
-                    parts.Add(setBlob(byteArrayValue));
+                    parts.Add(SetBlob(byteArrayValue));
                     break;
 
                 case long longValue:
                     typeStringBuilder.Append("h");
-                    parts.Add(setLong(longValue));
+                    parts.Add(SetLong(longValue));
                     break;
 
                 case ulong ulongValue:
                     typeStringBuilder.Append("t");
-                    parts.Add(setULong(ulongValue));
+                    parts.Add(SetULong(ulongValue));
                     break;
 
                 case TimeTag timeTagValue:
                     typeStringBuilder.Append("t");
-                    parts.Add(setULong(timeTagValue.Tag));
+                    parts.Add(SetULong(timeTagValue.Tag));
                     break;
 
                 case double doubleValue:
@@ -80,7 +80,7 @@ public class OscMessage : OscPacket
                     }
 
                     typeStringBuilder.Append("d");
-                    parts.Add(setDouble(doubleValue));
+                    parts.Add(SetDouble(doubleValue));
                     break;
 
                 case Symbol symbolValue:
@@ -90,7 +90,7 @@ public class OscMessage : OscPacket
 
                 case char charValue:
                     typeStringBuilder.Append("c");
-                    parts.Add(setChar(charValue));
+                    parts.Add(SetChar(charValue));
                     break;
 
                 case RGBA rgbaValue:
