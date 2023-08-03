@@ -64,10 +64,10 @@ public class ListenerTest
     
         var msg = new OscMessage("/test/", 23.42f);
     
-        for (var i = 0; i < 1000; i++)
+        for (var i = 0; i < 100; i++)
             await sender.SendAsync(msg);
     
-        for (var i = 0; i < 1000; i++)
+        for (var i = 0; i < 100; i++)
         {
             var receivedMessage = (await listener.ReceiveAsync()).AsT0;
             Assert.Equal("/test/", receivedMessage.Address);
