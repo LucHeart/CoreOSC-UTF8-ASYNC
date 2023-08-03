@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -14,7 +13,7 @@ public class OscMessage : OscPacket
 
     public OscMessage(string address, params object?[] args)
     {
-        this.Address = address;
+        Address = address;
         Arguments = args;
     }
 
@@ -33,73 +32,73 @@ public class OscMessage : OscPacket
             switch (arg)
             {
                 case int intValue:
-                    typeStringBuilder.Append("i");
+                    typeStringBuilder.Append('i');
                     parts.Add(SetInt(intValue));
                     break;
 
                 case float floatValue:
                     if (float.IsPositiveInfinity(floatValue))
                     {
-                        typeStringBuilder.Append("I");
+                        typeStringBuilder.Append('I');
                         break;
                     }
-                    typeStringBuilder.Append("f");
+                    typeStringBuilder.Append('f');
                     parts.Add(SetFloat(floatValue));
                     break;
 
                 case string stringValue:
-                    typeStringBuilder.Append("s");
+                    typeStringBuilder.Append('s');
                     parts.Add(SetString(stringValue));
                     break;
 
                 case byte[] byteArrayValue:
-                    typeStringBuilder.Append("b");
+                    typeStringBuilder.Append('b');
                     parts.Add(SetBlob(byteArrayValue));
                     break;
 
                 case long longValue:
-                    typeStringBuilder.Append("h");
+                    typeStringBuilder.Append('h');
                     parts.Add(SetLong(longValue));
                     break;
 
                 case ulong ulongValue:
-                    typeStringBuilder.Append("t");
+                    typeStringBuilder.Append('t');
                     parts.Add(SetULong(ulongValue));
                     break;
 
                 case TimeTag timeTagValue:
-                    typeStringBuilder.Append("t");
+                    typeStringBuilder.Append('t');
                     parts.Add(SetULong(timeTagValue.Tag));
                     break;
 
                 case double doubleValue:
                     if (double.IsPositiveInfinity(doubleValue))
                     {
-                        typeStringBuilder.Append("I");
+                        typeStringBuilder.Append('I');
                         break;
                     }
 
-                    typeStringBuilder.Append("d");
+                    typeStringBuilder.Append('d');
                     parts.Add(SetDouble(doubleValue));
                     break;
 
                 case Symbol symbolValue:
-                    typeStringBuilder.Append("S");
+                    typeStringBuilder.Append('S');
                     parts.Add(symbolValue.ToBytes());
                     break;
 
                 case char charValue:
-                    typeStringBuilder.Append("c");
+                    typeStringBuilder.Append('c');
                     parts.Add(SetChar(charValue));
                     break;
 
                 case RGBA rgbaValue:
-                    typeStringBuilder.Append("r");
+                    typeStringBuilder.Append('r');
                     parts.Add(rgbaValue.ToBytes());
                     break;
 
                 case Midi midiValue:
-                    typeStringBuilder.Append("m");
+                    typeStringBuilder.Append('m');
                     parts.Add(midiValue.ToBytes());
                     break;
 
@@ -108,7 +107,7 @@ public class OscMessage : OscPacket
                     break;
 
                 case null:
-                    typeStringBuilder.Append("N");
+                    typeStringBuilder.Append('N');
                     break;
 
                 // This part handles arrays. It points currentList to the array and resets i
@@ -120,7 +119,7 @@ public class OscMessage : OscPacket
 
                     if (Arguments != currentList)
                         throw new Exception("Nested Arrays are not supported");
-                    typeStringBuilder.Append("[");
+                    typeStringBuilder.Append('[');
                     currentList = array;
                     argumentsIndex = i;
                     i = 0;
@@ -134,7 +133,7 @@ public class OscMessage : OscPacket
             if (currentList != Arguments && i == currentList.Length)
             {
                 // End of array, go back to main Argument list
-                typeStringBuilder.Append("]");
+                typeStringBuilder.Append(']');
                 currentList = Arguments;
                 i = argumentsIndex + 1;
             }

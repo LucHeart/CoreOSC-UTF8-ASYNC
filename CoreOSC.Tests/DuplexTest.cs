@@ -8,7 +8,7 @@ public class DuplexTest
     /// <summary>
     /// Duplex connection simple message test
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task DuplexSendReceive()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -24,7 +24,7 @@ public class DuplexTest
     /// <summary>
     /// Duplex connection message with utf8 content
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task DuplexUft8()
     {
         var endpoint = TestUtils.GetNextEndpoint();

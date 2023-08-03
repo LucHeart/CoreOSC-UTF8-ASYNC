@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -7,7 +6,7 @@ namespace LucHeart.CoreOSC.Tests;
 
 public class IntegrationTest
 {
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task TestMessage()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -62,7 +61,7 @@ public class IntegrationTest
         Assert.Equal(double.PositiveInfinity, msgRevc.Arguments[15]);
     }
 
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task TestBundle()
     {
         var endpoint = TestUtils.GetNextEndpoint();

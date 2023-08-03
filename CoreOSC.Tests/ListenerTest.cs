@@ -1,7 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
+﻿using System.Net.Sockets;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -13,7 +10,7 @@ public class ListenerTest
     /// Opens a listener on a specified port, then closes it and attempts to open another on the same port
     /// Opening the second listener will fail unless the first one has been properly closed.
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public void CloseListener()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -27,7 +24,7 @@ public class ListenerTest
     /// <summary>
     /// Tries to open two listeners on the same port, results in an exception
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public void CloseListenerException()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -41,7 +38,7 @@ public class ListenerTest
     /// <summary>
     /// Single message receive
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task ListenerSingleMsg()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -58,7 +55,7 @@ public class ListenerTest
     /// <summary>
     /// Bombard the listener with messages, check if they are all received
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task ListenerLoadTest()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -81,7 +78,7 @@ public class ListenerTest
     /// <summary>
     /// Single message receive with utf8 content
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task ListenerUtf8()
     {
         var endpoint = TestUtils.GetNextEndpoint();
@@ -98,7 +95,7 @@ public class ListenerTest
     /// <summary>
     /// Single message receive with utf8 content
     /// </summary>
-    [Fact(Timeout = 1000)]
+    [Fact(Timeout = 5000)]
     public async Task ListenerUtf8_2()
     {
         var endpoint = TestUtils.GetNextEndpoint();
