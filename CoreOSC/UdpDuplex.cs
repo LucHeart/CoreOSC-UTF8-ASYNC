@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpDuplex : UdpListener
+public class UdpDuplex : UdpListener, IOscSender
 {
     private readonly IPEndPoint _remoteEndPoint;
 
@@ -13,6 +13,6 @@ public class UdpDuplex : UdpListener
     }
     
     public Task SendAsync(byte[] message) => UdpClient.SendAsync(message, message.Length, _remoteEndPoint);
-    public Task SendAsync(OscPacket packet) => SendAsync(packet.GetBytes());
+    public Task SendAsync(IOscPacket packet) => SendAsync(packet.GetBytes());
     
 }

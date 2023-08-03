@@ -47,7 +47,7 @@ public class ListenerTest
     
         var msg = new OscMessage("/test/", 23.42f);
         await sender.SendAsync(msg);
-        var received = (await listener.ReceiveAsync()).AsT0;
+        var received = await listener.ReceiveMessageAsync();
         Assert.Equal("/test/", received.Address);
         Assert.Equal(23.42f, received.Arguments[0]);
     }
@@ -69,7 +69,7 @@ public class ListenerTest
     
         for (var i = 0; i < 100; i++)
         {
-            var receivedMessage = (await listener.ReceiveAsync()).AsT0;
+            var receivedMessage = await listener.ReceiveMessageAsync();
             Assert.Equal("/test/", receivedMessage.Address);
             Assert.Equal(23.42f, receivedMessage.Arguments[0]);
         }
@@ -87,7 +87,7 @@ public class ListenerTest
     
         var msg = new OscMessage("/test/", "⚡");
         await sender.SendAsync(msg);
-        var received = (await listener.ReceiveAsync()).AsT0;
+        var received = await listener.ReceiveMessageAsync();
         Assert.Equal("/test/", received.Address);
         Assert.Equal("⚡", received.Arguments[0]);
     }
@@ -104,7 +104,7 @@ public class ListenerTest
     
         var msg = new OscMessage("/test/", "There is a thunderstorm ⚡ brewing in the ☁");
         await sender.SendAsync(msg);
-        var received = (await listener.ReceiveAsync()).AsT0;
+        var received = await listener.ReceiveMessageAsync();
         Assert.Equal("/test/", received.Address);
         Assert.Equal("There is a thunderstorm ⚡ brewing in the ☁", received.Arguments[0]);
     }

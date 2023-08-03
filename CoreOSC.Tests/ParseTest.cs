@@ -14,7 +14,7 @@ public class ParseTest
         var msg = new OscMessage("/test/1", val);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
         Assert.Equal(val, (double)msg2.Arguments[0]!);
     }
 
@@ -26,7 +26,7 @@ public class ParseTest
         var msg = new OscMessage("/test/1", blob);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
         Assert.Equal(blob, (byte[])msg2.Arguments[0]!);
     }
 
@@ -39,7 +39,7 @@ public class ParseTest
         var msg = new OscMessage("/test/1", tag);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
         Assert.Equal(tag.Tag, ((TimeTag)msg2.Arguments[0]!).Tag);
     }
 
@@ -50,7 +50,7 @@ public class ParseTest
         var msg = new OscMessage("/test/1", num);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
 
         Assert.Equal(num, msg2.Arguments[0]);
     }
@@ -62,7 +62,7 @@ public class ParseTest
         var msg = new OscMessage("/test/1", 9999, list, 24.24f);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
 
         Assert.Equal(9999, msg2.Arguments[0]);
         Assert.Equal(list, msg2.Arguments[1]);
@@ -76,7 +76,7 @@ public class ParseTest
         var msg = new OscMessage("", 9999, 24.24f);
         var bytes = msg.GetBytes();
 
-        var msg2 = OscPacket.GetPacket(bytes).AsT0;
+        var msg2 = OscMessage.ParseMessage(bytes);
 
         Assert.Equal("", msg2.Address);
         Assert.Equal(9999, msg2.Arguments[0]);

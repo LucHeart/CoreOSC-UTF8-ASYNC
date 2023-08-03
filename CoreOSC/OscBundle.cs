@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LucHeart.CoreOSC;
 
-public class OscBundle : OscPacket
+public class OscBundle : IOscPacket
 {
     private TimeTag _timeTag;
 
@@ -33,11 +33,11 @@ public class OscBundle : OscPacket
     private const string BundleName = "#bundle";
     private static readonly int BundleTagLen = Utils.AlignedStringLength(BundleName);
     
-    public override byte[] GetBytes()
+    public byte[] GetBytes()
     {
         var outMessages = Messages.Select(msg => msg.GetBytes()).ToArray();
 
-        var tag = SetULong(_timeTag.Tag);
+        var tag = OscPacketUtils.SetULong(_timeTag.Tag);
         var len = BundleTagLen + tag.Length + outMessages.Sum(x => x.Length + 4);
         
         var output = new byte[len];
@@ -48,7 +48,7 @@ public class OscBundle : OscPacket
 
         foreach (var msg in outMessages)
         {
-            var size = SetInt(msg.Length);
+            var size = OscPacketUtils.SetInt(msg.Length);
             size.CopyTo(output, i);
             i += size.Length;
 
@@ -56,6 +56,45 @@ public class OscBundle : OscPacket
             i += msg.Length; // msg size is always a multiple of 4
         }
 
+        return output;
+    }
+    
+    /// <summary>
+    /// Takes in an OSC bundle package in byte form and parses it into a more usable OscBundle object
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <returns>Bundle containing elements and a timetag</returns>
+    public static OscBundle ParseBundle(Span<byte> msg)
+    {
+        ReadOnlySpan<byte> msgReadOnly = msg;
+        var messages = new List<OscMessage>();
+
+        var index = 0;
+
+        var bundleTag = Encoding.ASCII.GetString(msgReadOnly[..8]);
+        index += 8;
+
+        var timeTag = OscPacketUtils.GetULong(msgReadOnly, index);
+        index += 8;
+
+        if (bundleTag != "#bundle\0")
+            throw new Exception("Not a bundle");
+
+        while (index < msgReadOnly.Length)
+        {
+            var size = OscPacketUtils.GetInt(msgReadOnly, index);
+            index += 4;
+
+            var messageBytes = msg.Slice(index, size);
+            var message = OscMessage.ParseMessage(messageBytes);
+            messages.Add(message);
+
+            index += size;
+            while (index % 4 != 0)
+                index++;
+        }
+
+        var output = new OscBundle(timeTag, messages.ToArray());
         return output;
     }
 }

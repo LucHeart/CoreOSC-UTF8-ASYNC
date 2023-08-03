@@ -16,7 +16,7 @@ public class DuplexTest
         
         var msg = new OscMessage("/test/", 23.42f);
         await duplex.SendAsync(msg);
-        var received = (await duplex.ReceiveAsync()).AsT0;
+        var received = await duplex.ReceiveMessageAsync();
         Assert.Equal("/test/", received.Address);
         Assert.Equal(23.42f, received.Arguments[0]);
     }
@@ -32,7 +32,7 @@ public class DuplexTest
     
         var msg = new OscMessage("/test/", "⚡");
         await duplex.SendAsync(msg);
-        var received = (await duplex.ReceiveAsync()).AsT0;
+        var received = await duplex.ReceiveMessageAsync();
         Assert.Equal("/test/", received.Address);
         Assert.Equal("⚡", received.Arguments[0]);
     }

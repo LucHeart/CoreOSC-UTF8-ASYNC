@@ -2,11 +2,10 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using OneOf;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpListener : IDisposable
+public class UdpListener : IDisposable, IOscListener
 {
     internal readonly UdpClient UdpClient;
 
@@ -15,12 +14,18 @@ public class UdpListener : IDisposable
         UdpClient = new UdpClient(listenerEndPoint);
     }
 
-    public async Task<OneOf<OscMessage, OscBundle>> ReceiveAsync()
+    public async Task<OscMessage> ReceiveMessageAsync()
     {
         var receiveResult = await UdpClient.ReceiveAsync();
-        return OscPacket.GetPacket(receiveResult.Buffer);
+        return OscMessage.ParseMessage(receiveResult.Buffer);
     }
-    
+
+    public async Task<OscBundle> ReceiveBundleAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return OscBundle.ParseBundle(receiveResult.Buffer);
+    }
+
     public void Dispose()
     {
         UdpClient.Dispose();

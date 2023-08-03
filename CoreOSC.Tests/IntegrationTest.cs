@@ -37,7 +37,7 @@ public class IntegrationTest
 
         await sender.SendAsync(msg1);
         
-        var msgRevc = (await listener.ReceiveAsync()).AsT0;
+        var msgRevc = await listener.ReceiveMessageAsync();
         Assert.NotNull(msgRevc);
         
         Assert.Equal("/test/address", msgRevc.Address);
@@ -76,9 +76,9 @@ public class IntegrationTest
         await sender1.SendAsync(bundle);
         await sender1.SendAsync(bundle);
 
-        await listener.ReceiveAsync();
-        await listener.ReceiveAsync();
-        var receivedMessage = (await listener.ReceiveAsync()).AsT1;
+        await listener.ReceiveBundleAsync();
+        await listener.ReceiveBundleAsync();
+        var receivedMessage = await listener.ReceiveBundleAsync();
 
         Assert.Equal(dt.Date, receivedMessage.Timestamp.Date);
         Assert.Equal(dt.Hour, receivedMessage.Timestamp.Hour);

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpSender : IDisposable
+public class UdpSender : IDisposable, IOscSender
 {
 
     private readonly IPEndPoint _remoteIpEndPoint;
@@ -19,7 +19,7 @@ public class UdpSender : IDisposable
 
     public Task SendAsync(byte[] message) => _sock.SendToAsync(message, SocketFlags.None, _remoteIpEndPoint);
 
-    public Task SendAsync(OscPacket packet) => SendAsync(packet.GetBytes());
+    public Task SendAsync(IOscPacket packet) => SendAsync(packet.GetBytes());
     
     public void Dispose()
     {

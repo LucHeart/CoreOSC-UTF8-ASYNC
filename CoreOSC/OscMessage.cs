@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LucHeart.CoreOSC;
 
-public class OscMessage : OscPacket
+public class OscMessage : IOscPacket
 {
     public readonly string Address;
     public readonly object?[] Arguments;
@@ -17,7 +17,7 @@ public class OscMessage : OscPacket
         Arguments = args;
     }
 
-    public override byte[] GetBytes()
+    public byte[] GetBytes()
     {
         var parts = new List<byte[]>();
 
@@ -33,7 +33,7 @@ public class OscMessage : OscPacket
             {
                 case int intValue:
                     typeStringBuilder.Append('i');
-                    parts.Add(SetInt(intValue));
+                    parts.Add(OscPacketUtils.SetInt(intValue));
                     break;
 
                 case float floatValue:
@@ -43,32 +43,32 @@ public class OscMessage : OscPacket
                         break;
                     }
                     typeStringBuilder.Append('f');
-                    parts.Add(SetFloat(floatValue));
+                    parts.Add(OscPacketUtils.SetFloat(floatValue));
                     break;
 
                 case string stringValue:
                     typeStringBuilder.Append('s');
-                    parts.Add(SetString(stringValue));
+                    parts.Add(OscPacketUtils.SetString(stringValue));
                     break;
 
                 case byte[] byteArrayValue:
                     typeStringBuilder.Append('b');
-                    parts.Add(SetBlob(byteArrayValue));
+                    parts.Add(OscPacketUtils.SetBlob(byteArrayValue));
                     break;
 
                 case long longValue:
                     typeStringBuilder.Append('h');
-                    parts.Add(SetLong(longValue));
+                    parts.Add(OscPacketUtils.SetLong(longValue));
                     break;
 
                 case ulong ulongValue:
                     typeStringBuilder.Append('t');
-                    parts.Add(SetULong(ulongValue));
+                    parts.Add(OscPacketUtils.SetULong(ulongValue));
                     break;
 
                 case TimeTag timeTagValue:
                     typeStringBuilder.Append('t');
-                    parts.Add(SetULong(timeTagValue.Tag));
+                    parts.Add(OscPacketUtils.SetULong(timeTagValue.Tag));
                     break;
 
                 case double doubleValue:
@@ -79,7 +79,7 @@ public class OscMessage : OscPacket
                     }
 
                     typeStringBuilder.Append('d');
-                    parts.Add(SetDouble(doubleValue));
+                    parts.Add(OscPacketUtils.SetDouble(doubleValue));
                     break;
 
                 case Symbol symbolValue:
@@ -89,7 +89,7 @@ public class OscMessage : OscPacket
 
                 case char charValue:
                     typeStringBuilder.Append('c');
-                    parts.Add(SetChar(charValue));
+                    parts.Add(OscPacketUtils.SetChar(charValue));
                     break;
 
                 case RGBA rgbaValue:
@@ -160,5 +160,151 @@ public class OscMessage : OscPacket
         }
 
         return output;
+    }
+    
+        /// <summary>
+    /// Takes in an OSC bundle package in byte form and parses it into a more usable OscBundle object
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <returns>Message containing various arguments and an address</returns>
+    public static OscMessage ParseMessage(Span<byte> msg)
+    {
+        ReadOnlySpan<byte> msgReadOnlySpan = msg;
+
+        var arguments = new List<object?>();
+        var mainArray = arguments; // used as a reference when we are parsing arrays to get the main array back
+
+        // Get address
+        var address = OscPacketUtils.GetAddress(msgReadOnlySpan, out var index);
+
+        if (index % 4 != 0)
+            throw new Exception(
+                "Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");
+
+        // Get type tags
+        var types = OscPacketUtils.GetTypes(msgReadOnlySpan, index);
+        index += types.Length;
+
+        while (index % 4 != 0)
+            index++;
+
+        var commaParsed = false;
+
+        foreach (var type in types)
+        {
+            // skip leading comma
+            if (type == OscPacketUtils.DividerChar && !commaParsed)
+            {
+                commaParsed = true;
+                continue;
+            }
+
+            switch (type)
+            {
+                case '\0':
+                    break;
+
+                case 'i':
+                    var intVal = OscPacketUtils.GetInt(msgReadOnlySpan, index);
+                    arguments.Add(intVal);
+                    index += 4;
+                    break;
+
+                case 'f':
+                    var floatVal = OscPacketUtils.GetFloat(msg, index);
+                    arguments.Add(floatVal);
+                    index += 4;
+                    break;
+
+                case 's':
+                    var stringVal = OscPacketUtils.GetString(msgReadOnlySpan, index);
+                    arguments.Add(stringVal);
+                    index += Encoding.UTF8.GetBytes(stringVal).Length;
+                    break;
+
+                case 'b':
+                    var blob = OscPacketUtils.GetBlob(msgReadOnlySpan, index);
+                    arguments.Add(blob.ToArray());
+                    index += 4 + blob.Length;
+                    break;
+
+                case 'h':
+                    var hval = OscPacketUtils.GetLong(msgReadOnlySpan, index);
+                    arguments.Add(hval);
+                    index += 8;
+                    break;
+
+                case 't':
+                    var sval = OscPacketUtils.GetULong(msgReadOnlySpan, index);
+                    arguments.Add(new TimeTag(sval));
+                    index += 8;
+                    break;
+
+                case 'd':
+                    var dval = OscPacketUtils.GetDouble(msg, index);
+                    arguments.Add(dval);
+                    index += 8;
+                    break;
+
+                case 'S':
+                    var symbolVal = OscPacketUtils.GetString(msgReadOnlySpan, index);
+                    arguments.Add(new Symbol(symbolVal));
+                    index += symbolVal.Length;
+                    break;
+
+                case 'c':
+                    var cval = OscPacketUtils.GetChar(msg, index);
+                    arguments.Add(cval);
+                    index += 4;
+                    break;
+
+                case 'r':
+                    var rgbaval = OscPacketUtils.GetRgba(msg, index);
+                    arguments.Add(rgbaval);
+                    index += 4;
+                    break;
+
+                case 'm':
+                    var midival = OscPacketUtils.GetMidi(msg, index);
+                    arguments.Add(midival);
+                    index += 4;
+                    break;
+
+                case 'T':
+                    arguments.Add(true);
+                    break;
+
+                case 'F':
+                    arguments.Add(false);
+                    break;
+
+                case 'N':
+                    arguments.Add(null);
+                    break;
+
+                case 'I':
+                    arguments.Add(double.PositiveInfinity);
+                    break;
+
+                case '[':
+                    if (arguments != mainArray)
+                        throw new Exception("CoreOSC does not support nested arrays");
+                    arguments = new List<object?>(); // make arguments point to a new object array
+                    break;
+
+                case ']':
+                    mainArray.Add(arguments); // add the array to the main array
+                    arguments = mainArray; // make arguments point back to the main array
+                    break;
+
+                default:
+                    throw new Exception("OSC type tag '" + type + "' is unknown.");
+            }
+
+            while (index % 4 != 0)
+                index++;
+        }
+
+        return new OscMessage(address, arguments.ToArray());
     }
 }
