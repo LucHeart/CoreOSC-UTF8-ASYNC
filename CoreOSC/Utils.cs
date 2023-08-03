@@ -2,7 +2,7 @@
 
 namespace LucHeart.CoreOSC;
 
-public class Utils
+public static class Utils
 {
     public static DateTime TimeTagToDateTime(ulong val)
     {

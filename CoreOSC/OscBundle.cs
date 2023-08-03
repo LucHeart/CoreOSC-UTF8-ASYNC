@@ -9,7 +9,7 @@ public class OscBundle : OscPacket
 {
     private TimeTag _timeTag;
 
-    public ulong Timetag
+    public ulong TimeTag
     {
         get => _timeTag.Tag;
         set => _timeTag.Tag = value;
@@ -17,41 +17,36 @@ public class OscBundle : OscPacket
 
     public DateTime Timestamp
     {
-        get { return _timeTag.Timestamp; }
-        set { _timeTag.Timestamp = value; }
+        get => _timeTag.Timestamp;
+        set => _timeTag.Timestamp = value;
     }
 
-    public List<OscMessage> Messages;
+    public readonly List<OscMessage> Messages;
 
-    public OscBundle(UInt64 timetag, params OscMessage[] args)
+    public OscBundle(ulong timetag, params OscMessage[] args)
     {
         _timeTag = new TimeTag(timetag);
         Messages = new List<OscMessage>();
         Messages.AddRange(args);
     }
 
+    private const string BundleName = "#bundle";
+    private static readonly int BundleTagLen = Utils.AlignedStringLength(BundleName);
+    
     public override byte[] GetBytes()
     {
-        string bundle = "#bundle";
-        int bundleTagLen = Utils.AlignedStringLength(bundle);
-        byte[] tag = SetULong(_timeTag.Tag);
+        var outMessages = Messages.Select(msg => msg.GetBytes()).ToArray();
 
-        List<byte[]> outMessages = new List<byte[]>();
-        foreach (OscMessage msg in Messages)
-        {
-            outMessages.Add(msg.GetBytes());
-        }
-
-        int len = bundleTagLen + tag.Length + outMessages.Sum(x => x.Length + 4);
-
-        int i = 0;
-        byte[] output = new byte[len];
-        Encoding.ASCII.GetBytes(bundle).CopyTo(output, i);
-        i += bundleTagLen;
+        var tag = SetULong(_timeTag.Tag);
+        var len = BundleTagLen + tag.Length + outMessages.Sum(x => x.Length + 4);
+        
+        var output = new byte[len];
+        Encoding.ASCII.GetBytes(BundleName).CopyTo(output, 0);
+        var i = BundleTagLen;
         tag.CopyTo(output, i);
         i += tag.Length;
 
-        foreach (byte[] msg in outMessages)
+        foreach (var msg in outMessages)
         {
             var size = SetInt(msg.Length);
             size.CopyTo(output, i);

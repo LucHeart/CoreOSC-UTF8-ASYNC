@@ -130,13 +130,12 @@ public class OscMessage : OscPacket
             }
 
             i++;
-            if (currentList != Arguments && i == currentList.Length)
-            {
-                // End of array, go back to main Argument list
-                typeStringBuilder.Append(']');
-                currentList = Arguments;
-                i = argumentsIndex + 1;
-            }
+            if (currentList == Arguments || i != currentList.Length) continue;
+            
+            // End of array, go back to main Argument list
+            typeStringBuilder.Append(']');
+            currentList = Arguments;
+            i = argumentsIndex + 1;
         }
 
         var addressLen = string.IsNullOrEmpty(Address) ? 0 : Utils.AlignedStringLength(Address);
