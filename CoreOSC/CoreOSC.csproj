@@ -17,7 +17,7 @@
     <FileVersion>1.2.0.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
     <Version>1.2.0</Version>
-    <PackageLicenseUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 
