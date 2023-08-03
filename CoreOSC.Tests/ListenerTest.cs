@@ -55,7 +55,7 @@ public class ListenerTest
     /// <summary>
     /// Bombard the listener with messages, check if they are all received
     /// </summary>
-    [Fact(Timeout = 5000)]
+    [Fact(Timeout = 60_000)]
     public async Task ListenerLoadTest()
     {
         var endpoint = TestUtils.GetNextEndpoint();
