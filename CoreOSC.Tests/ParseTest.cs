@@ -58,7 +58,7 @@ public class ParseTest
     [Fact]
     public void TestArray()
     {
-        var list = new List<object>() { 23, true, "hello world" };
+        var list = new List<object> { 23, true, "hello world" };
         var msg = new OscMessage("/test/1", 9999, list, 24.24f);
         var bytes = msg.GetBytes();
 

@@ -13,10 +13,10 @@
     <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
     <PackageTags>osc async </PackageTags>
     <Company>LucHeart</Company>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <PackageLicenseUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
