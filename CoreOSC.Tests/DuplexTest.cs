@@ -12,7 +12,7 @@ public class DuplexTest
     public async Task DuplexSendReceive()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var duplex = new UdpDuplex(endpoint, endpoint);
+        using var duplex = new OscDuplex(endpoint, endpoint);
         
         var msg = new OscMessage("/test/", 23.42f);
         await duplex.SendAsync(msg);
@@ -28,7 +28,7 @@ public class DuplexTest
     public async Task DuplexUft8()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var duplex = new UdpDuplex(endpoint, endpoint);
+        using var duplex = new OscDuplex(endpoint, endpoint);
     
         var msg = new OscMessage("/test/", "⚡");
         await duplex.SendAsync(msg);

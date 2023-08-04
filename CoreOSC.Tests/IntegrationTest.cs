@@ -10,8 +10,8 @@ public class IntegrationTest
     public async Task TestMessage()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender = new OscSender(endpoint);
 
         // Test every message type (except Symbol)
         var msg1 = new OscMessage(
@@ -65,8 +65,8 @@ public class IntegrationTest
     public async Task TestBundle()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender1 = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender1 = new OscSender(endpoint);
         var msg1 = new OscMessage("/test/address1", 23, 42.42f, "hello world", new byte[] { 2, 3, 4 });
         var msg2 = new OscMessage("/test/address2", 34, 24.24f, "hello again", new byte[] { 5, 6, 7, 8, 9 });
         var dt = DateTime.Now;

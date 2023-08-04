@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpListener : IDisposable, IOscListener
+public class OscListener : IDisposable, IOscListener
 {
     internal readonly UdpClient UdpClient;
 
-    public UdpListener(IPEndPoint listenerEndPoint)
+    public OscListener(IPEndPoint listenerEndPoint)
     {
         UdpClient = new UdpClient(listenerEndPoint);
     }

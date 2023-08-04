@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpDuplex : UdpListener, IOscSender
+public class OscDuplex : OscListener, IOscSender
 {
     private readonly IPEndPoint _remoteEndPoint;
 
-    public UdpDuplex(IPEndPoint listenerEndpoint, IPEndPoint remoteEndpoint) : base(listenerEndpoint)
+    public OscDuplex(IPEndPoint listenerEndpoint, IPEndPoint remoteEndpoint) : base(listenerEndpoint)
     {
         _remoteEndPoint = remoteEndpoint;
     }

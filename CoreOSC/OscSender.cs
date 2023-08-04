@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC;
 
-public class UdpSender : IDisposable, IOscSender
+public class OscSender : IDisposable, IOscSender
 {
 
     private readonly IPEndPoint _remoteIpEndPoint;
     private readonly Socket _sock;
 
-    public UdpSender(IPEndPoint remoteIpEndPoint)
+    public OscSender(IPEndPoint remoteIpEndPoint)
     {
         _remoteIpEndPoint = remoteIpEndPoint;
         _sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);

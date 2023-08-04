@@ -14,11 +14,11 @@ public class ListenerTest
     public void CloseListener()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using (new UdpListener(endpoint))
+        using (new OscListener(endpoint))
         {
             // Logic would be within the lifetime of this listener
         } // Dispose happens here, compiler sugar :)
-        using var l2 = new UdpListener(endpoint);
+        using var l2 = new OscListener(endpoint);
     }
 
     /// <summary>
@@ -30,8 +30,8 @@ public class ListenerTest
         var endpoint = TestUtils.GetNextEndpoint();
         Assert.Throws<SocketException>(() =>
         {
-            using var l1 = new UdpListener(endpoint);
-            using var l2 = new UdpListener(endpoint);
+            using var l1 = new OscListener(endpoint);
+            using var l2 = new OscListener(endpoint);
         });
     }
     
@@ -42,8 +42,8 @@ public class ListenerTest
     public async Task ListenerSingleMsg()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender = new OscSender(endpoint);
     
         var msg = new OscMessage("/test/", 23.42f);
         await sender.SendAsync(msg);
@@ -59,8 +59,8 @@ public class ListenerTest
     public async Task ListenerLoadTest()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender = new OscSender(endpoint);
     
         var msg = new OscMessage("/test/", 23.42f);
     
@@ -82,8 +82,8 @@ public class ListenerTest
     public async Task ListenerUtf8()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender = new OscSender(endpoint);
     
         var msg = new OscMessage("/test/", "⚡");
         await sender.SendAsync(msg);
@@ -99,8 +99,8 @@ public class ListenerTest
     public async Task ListenerUtf8_2()
     {
         var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new UdpListener(endpoint);
-        using var sender = new UdpSender(endpoint);
+        using var listener = new OscListener(endpoint);
+        using var sender = new OscSender(endpoint);
     
         var msg = new OscMessage("/test/", "There is a thunderstorm ⚡ brewing in the ☁");
         await sender.SendAsync(msg);
