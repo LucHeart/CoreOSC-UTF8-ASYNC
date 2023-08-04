@@ -1,25 +1,30 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <AssemblyName>LucHeart.CoreOSC</AssemblyName>
-    <RootNamespace>LucHeart.CoreOSC</RootNamespace>
-    <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
-    <LangVersion>11</LangVersion>
-    <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageId>LucHeart.CoreOSC</PackageId>
-    <Authors>LucHeart</Authors>
-    <PackageProjectUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
-    <PackageTags>osc async </PackageTags>
-    <Company>LucHeart</Company>
-    <AssemblyVersion>1.2.1.0</AssemblyVersion>
-    <FileVersion>1.2.1.0</FileVersion>
-    <NeutralLanguage>en</NeutralLanguage>
-    <Version>1.2.1</Version>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryType>git</RepositoryType>
-  </PropertyGroup>
+    <PropertyGroup>
+        <AssemblyName>LucHeart.CoreOSC</AssemblyName>
+        <RootNamespace>LucHeart.CoreOSC</RootNamespace>
+        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
+        <LangVersion>11</LangVersion>
+        <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>LucHeart.CoreOSC</PackageId>
+        <Authors>LucHeart</Authors>
+        <PackageProjectUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
+        <PackageTags>osc async</PackageTags>
+        <Company>LucHeart</Company>
+        <AssemblyVersion>1.2.1.0</AssemblyVersion>
+        <FileVersion>1.2.1.0</FileVersion>
+        <NeutralLanguage>en</NeutralLanguage>
+        <Version>1.2.1</Version>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
 
 
 </Project>
