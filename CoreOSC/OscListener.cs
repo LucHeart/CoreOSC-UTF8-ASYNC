@@ -20,10 +20,22 @@ public class OscListener : IDisposable, IOscListener
         return OscMessage.ParseMessage(receiveResult.Buffer);
     }
 
+    public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
+    }
+
     public async Task<OscBundle> ReceiveBundleAsync()
     {
         var receiveResult = await UdpClient.ReceiveAsync();
         return OscBundle.ParseBundle(receiveResult.Buffer);
+    }
+
+    public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return (OscBundle.ParseBundle(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
 
     public void Dispose()
