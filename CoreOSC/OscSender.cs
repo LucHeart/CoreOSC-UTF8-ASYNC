@@ -20,7 +20,11 @@ public class OscSender : IDisposable, IOscSender
     public Task SendAsync(byte[] message) => _sock.SendToAsync(message, SocketFlags.None, _remoteIpEndPoint);
 
     public Task SendAsync(IOscPacket packet) => SendAsync(packet.GetBytes());
-    
+
+    public Task SendAsync(IPEndPoint endPoint, byte[] message) => _sock.SendToAsync(message, SocketFlags.None, endPoint);
+
+    public Task SendAsync(IPEndPoint endPoint, IOscPacket packet) => SendAsync(endPoint, packet.GetBytes());
+
     public void Dispose()
     {
         _sock.Dispose();
