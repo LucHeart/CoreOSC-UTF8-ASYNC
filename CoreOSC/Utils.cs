@@ -22,14 +22,6 @@ public static class Utils
         return new DateTime(EpochTicks + secondsTicks + fractionTicks);
     }
 
-    public static double TimeTagToFraction(ulong val)
-    {
-        if (val == 1)
-            return 0.0;
-
-        return (double)val / OscTicksPerSecond;
-    }
-
     public static ulong DateTimeToTimeTag(DateTime value)
     {
         long ticks = value.Ticks - EpochTicks;
@@ -44,9 +36,25 @@ public static class Utils
         return secondTicks | fractionTicks;
     }
 
-    public static ulong FractionToTimeTag(double value)
+    public static double TimeTagToSeconds(ulong val)
+    {
+        if (val == 1)
+            return 0.0;
+
+        return (double)val / OscTicksPerSecond;
+    }
+
+    public static ulong SecondsToTimeTag(double value)
     {
         return (ulong)(value * OscTicksPerSecond);
+    }
+
+    public static double TimeTagToFraction(ulong val)
+    {
+        if (val == 1)
+            return 0.0;
+
+        return (double)(val & 0xFFFFFFFF) / OscTicksPerSecond;
     }
 
     public static int AlignedStringLength(string val)
