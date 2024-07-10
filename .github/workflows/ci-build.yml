@@ -34,7 +34,7 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore -o ./publish
+        run: dotnet build --configuration Release --no-restore
 
       - name: Test
         run: dotnet test --no-restore --verbosity normal
@@ -44,10 +44,8 @@ jobs:
         with:
           name: Package
           path: |
-            publish/*.nupkg
-            publish/*.snupkg
-            publish/LucHeart.CoreOSC.dll
-            publish/LucHeart.CoreOSC.pdb
+            CoreOSC\bin\Release\*.nupkg
+            CoreOSC\bin\Release\*.snupkg
             
           retention-days: 7
           if-no-files-found: error
