@@ -4,17 +4,22 @@ namespace LucHeart.CoreOSC;
 
 public static class Utils
 {
+    private static readonly long EpochTicks = new DateTime(1900, 1, 1).Ticks;
+    private const uint OscTicksPerSecond = 0xFFFFFFFF;
+    private const double OscTicksPerDotNetTick = OscTicksPerSecond / (double)TimeSpan.TicksPerSecond; // 429.4967295
+
     public static DateTime TimeTagToDateTime(ulong val)
     {
         if (val == 1)
             return DateTime.Now;
 
-        var seconds = (uint)(val >> 32);
-        var time = DateTime.Parse("1900-01-01 00:00:00");
-        time = time.AddSeconds(seconds);
-        var fraction = TimeTagToFraction(val);
-        time = time.AddSeconds(fraction);
-        return time;
+        uint seconds = (uint)(val >> 32);
+        uint fraction = (uint)(val & 0xFFFFFFFF);
+
+        long secondsTicks = seconds * TimeSpan.TicksPerSecond;
+        long fractionTicks = (long)Math.Round(fraction / OscTicksPerDotNetTick); // We will loose accuracy in this conversion since there is about 430 OSC ticks per dotnet tick
+
+        return new DateTime(EpochTicks + secondsTicks + fractionTicks);
     }
 
     public static double TimeTagToFraction(ulong val)
@@ -22,18 +27,26 @@ public static class Utils
         if (val == 1)
             return 0.0;
 
-        var seconds = (uint)(val & 0x00000000FFFFFFFF);
-        var fraction = (double)seconds / 0xFFFFFFFF;
-        return fraction;
+        return (double)val / OscTicksPerSecond;
     }
 
     public static ulong DateTimeToTimeTag(DateTime value)
     {
-        ulong seconds = (uint)(value - DateTime.Parse("1900-01-01 00:00:00.000")).TotalSeconds;
-        var fraction = (uint)Math.Ceiling(0xFFFFFFFF * ((double)value.Millisecond / 1000));
+        long ticks = value.Ticks - EpochTicks;
+        if (ticks < 0) return 0;
 
-        var output = (seconds << 32) + fraction;
-        return output;
+        uint seconds = (uint)(ticks / TimeSpan.TicksPerSecond);
+        uint fractions = (uint)Math.Round((ticks - (seconds * TimeSpan.TicksPerSecond)) * OscTicksPerDotNetTick);
+
+        ulong secondTicks = (ulong)seconds << 32;
+        ulong fractionTicks = (ulong)fractions & 0xFFFFFFFF;
+
+        return secondTicks | fractionTicks;
+    }
+
+    public static ulong FractionToTimeTag(double value)
+    {
+        return (ulong)(value * OscTicksPerSecond);
     }
 
     public static int AlignedStringLength(string val)

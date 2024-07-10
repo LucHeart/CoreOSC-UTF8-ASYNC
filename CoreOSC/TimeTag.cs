@@ -4,6 +4,8 @@ namespace LucHeart.CoreOSC;
 
 public struct TimeTag
 {
+    public static TimeTag Immediate => new(1);
+
     public ulong Tag;
 
     public DateTime Timestamp
@@ -19,7 +21,7 @@ public struct TimeTag
     public double Fraction
     {
         get => Utils.TimeTagToFraction(Tag);
-        set => Tag = (Tag & 0xFFFFFFFF00000000) + (uint)(value * 0xFFFFFFFF);
+        set => Tag = Utils.FractionToTimeTag(value);
     }
 
     public TimeTag(ulong value)
