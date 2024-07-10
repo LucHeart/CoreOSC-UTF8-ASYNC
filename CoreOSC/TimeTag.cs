@@ -4,12 +4,28 @@ namespace LucHeart.CoreOSC;
 
 public struct TimeTag
 {
+    public static TimeTag Immediate => new(1);
+
     public ulong Tag;
 
+    /// <summary>
+    /// Gets or sets the timestamp from a DateTime. DateTime has an accuracy down to 100 nanoseconds (100'000
+    /// picoseconds)
+    /// </summary>
     public DateTime Timestamp
     {
         get => Utils.TimeTagToDateTime(Tag);
         set => Tag = Utils.DateTimeToTimeTag(value);
+    }
+
+    /// <summary>
+    /// Gets or sets the total seconds in the timestamp. the double precision number is multiplied by 2^32
+    /// giving an accuracy down to about 230 picoseconds ( 1/(2^32) of a second)
+    /// </summary>
+    public double Seconds
+    {
+        get => Utils.TimeTagToSeconds(Tag);
+        set => Tag = Utils.SecondsToTimeTag(value);
     }
 
     /// <summary>
@@ -19,7 +35,7 @@ public struct TimeTag
     public double Fraction
     {
         get => Utils.TimeTagToFraction(Tag);
-        set => Tag = (Tag & 0xFFFFFFFF00000000) + (uint)(value * 0xFFFFFFFF);
+        set => Tag = Utils.SecondsToTimeTag(value);
     }
 
     public TimeTag(ulong value)
