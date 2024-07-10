@@ -1,6 +1,7 @@
 ﻿using System.Net.Sockets;
 using System.Threading.Tasks;
 using Xunit;
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace LucHeart.CoreOSC.Tests;
 
@@ -11,7 +12,7 @@ public class ListenerTest
     /// Opening the second listener will fail unless the first one has been properly closed.
     /// </summary>
     [Fact(Timeout = 5000)]
-    public void CloseListener()
+    public async Task CloseListener()
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using (new OscListener(endpoint))
@@ -25,7 +26,7 @@ public class ListenerTest
     /// Tries to open two listeners on the same port, results in an exception
     /// </summary>
     [Fact(Timeout = 5000)]
-    public void CloseListenerException()
+    public async Task CloseListenerException()
     {
         var endpoint = TestUtils.GetNextEndpoint();
         Assert.Throws<SocketException>(() =>
