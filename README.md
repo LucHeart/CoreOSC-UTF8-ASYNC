@@ -1,4 +1,4 @@
-# LucHeart.CoreOSC - ASYNC OSC Library for .NET Standard 2.1 & NET 7.0+
+# LucHeart.CoreOSC - ASYNC OSC Library for .NET Standard 2.1 & NET 7.0, NET 8.0+
 [![NuGet](https://img.shields.io/nuget/v/LucHeart.CoreOSC?style=for-the-badge&color=6451f1)](https://www.nuget.org/packages/LucHeart.CoreOSC/)
 [![NuGet](https://img.shields.io/nuget/dt/LucHeart.CoreOSC?style=for-the-badge&color=6451f1)](https://www.nuget.org/packages/LucHeart.CoreOSC/)
 
