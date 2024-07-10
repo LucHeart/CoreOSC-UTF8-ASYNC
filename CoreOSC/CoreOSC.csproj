@@ -13,17 +13,17 @@
         <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
         <PackageTags>osc async</PackageTags>
         <Company>LucHeart</Company>
-        <AssemblyVersion>1.2.1.0</AssemblyVersion>
-        <FileVersion>1.2.1.0</FileVersion>
+        <AssemblyVersion>1.3.1.0</AssemblyVersion>
+        <FileVersion>1.3.1.0</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
-        <Version>1.2.1</Version>
+        <Version>1.3.1</Version>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 
