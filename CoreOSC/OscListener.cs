@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -7,12 +8,16 @@ namespace LucHeart.CoreOSC;
 
 public class OscListener : IDisposable, IOscListener
 {
+    internal Queue<OscMessage> MessageQueue;
     internal readonly UdpClient UdpClient;
+    
+    public bool EnableTransparentBundleToMessageConversion = false;
 
     public OscListener(IPEndPoint listenerEndPoint)
     {
         UdpClient = new UdpClient(listenerEndPoint);
-
+        MessageQueue = new Queue<OscMessage>();
+        
         // Set the SIO_UDP_CONNRESET ioctl to true for this UDP socket. If this UDP socket
         // ever sends a UDP packet to a remote destination that exists but there is
         // no socket to receive the packet, an ICMP port unreachable message is returned
@@ -39,8 +44,27 @@ public class OscListener : IDisposable, IOscListener
 
     public async Task<OscMessage> ReceiveMessageAsync()
     {
-        var receiveResult = await UdpClient.ReceiveAsync();
-        return OscMessage.ParseMessage(receiveResult.Buffer);
+        if (EnableTransparentBundleToMessageConversion)
+        {
+            if (MessageQueue.Count > 0)
+                return MessageQueue.Dequeue();
+            
+            var receiveResult = await UdpClient.ReceiveAsync();
+
+            if (!OscBundle.IsBundle(receiveResult.Buffer))
+                return OscMessage.ParseMessage(receiveResult.Buffer);
+            
+            var bundle = OscBundle.ParseBundle(receiveResult.Buffer);
+            foreach (var bundleMessage in bundle.Messages)
+                MessageQueue.Enqueue(bundleMessage);
+            
+            return MessageQueue.Dequeue();
+        }
+        else
+        {
+            var receiveResult = await UdpClient.ReceiveAsync();
+            return OscMessage.ParseMessage(receiveResult.Buffer);
+        }
     }
 
     public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync()

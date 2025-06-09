@@ -97,4 +97,13 @@ public class OscBundle : IOscPacket
         var output = new OscBundle(timeTag, messages.ToArray());
         return output;
     }
+    
+    public static bool IsBundle(ReadOnlySpan<byte> msg)
+    {
+        if (msg.Length < 8)
+            return false;
+        
+        var bundleTag = Encoding.ASCII.GetString(msg[..8]);
+        return bundleTag == "#bundle\0";
+    }
 }
