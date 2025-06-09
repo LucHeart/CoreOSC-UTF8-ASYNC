@@ -3,8 +3,8 @@
     <PropertyGroup>
         <AssemblyName>LucHeart.CoreOSC</AssemblyName>
         <RootNamespace>LucHeart.CoreOSC</RootNamespace>
-        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
-        <LangVersion>11</LangVersion>
+        <TargetFrameworks>net7.0;netstandard2.1;net8.0</TargetFrameworks>
+        <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>LucHeart.CoreOSC</PackageId>
@@ -13,17 +13,19 @@
         <RepositoryUrl>https://github.com/LucHeart/CoreOSC-UTF8-ASYNC</RepositoryUrl>
         <PackageTags>osc async</PackageTags>
         <Company>LucHeart</Company>
-        <AssemblyVersion>1.2.1.0</AssemblyVersion>
-        <FileVersion>1.2.1.0</FileVersion>
+        <AssemblyVersion>1.4.0.0</AssemblyVersion>
+        <FileVersion>1.4.0.0</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
-        <Version>1.2.1</Version>
+        <Version>1.4.0</Version>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
 
 
