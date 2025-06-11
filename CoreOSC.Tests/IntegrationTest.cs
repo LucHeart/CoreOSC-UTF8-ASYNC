@@ -1,7 +1,11 @@
-﻿namespace LucHeart.CoreOSC.Tests;
+﻿using System.Diagnostics;
+
+namespace LucHeart.CoreOSC.Tests;
 
 public class IntegrationTest
 {
+    private static readonly DateTime TestDate = DateTime.Parse("2025-12-12T12:34:56Z");
+    
     [Test, Timeout(5000)]
     public async Task TestMessage(CancellationToken ct)
     {
@@ -17,8 +21,8 @@ public class IntegrationTest
             "hello world",
             new byte[] { 2, 3, 4 },
             -123456789123,
-            new TimeTag(DateTime.Now.Date).Tag,
-            new TimeTag(DateTime.Now.Date.AddMonths(1)),
+            new TimeTag(TestDate.Date).Tag,
+            new TimeTag(TestDate.Date.AddMonths(1)),
             1234567.890,
             new Symbol("wut wut"),
             'x',
@@ -45,7 +49,7 @@ public class IntegrationTest
         using var sender1 = new OscSender(endpoint);
         var msg1 = new OscMessage("/test/address1", 23, 42.42f, "hello world", new byte[] { 2, 3, 4 });
         var msg2 = new OscMessage("/test/address2", 34, 24.24f, "hello again", new byte[] { 5, 6, 7, 8, 9 });
-        var dt = Utils.DateTimeToTimeTag(DateTime.Parse("2025-12-12T12:34:56Z"));
+        var dt = Utils.DateTimeToTimeTag(TestDate);
         var bundle = new OscBundle(dt, msg1, msg2);
 
         await sender1.SendAsync(bundle);
