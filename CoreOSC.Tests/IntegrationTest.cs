@@ -1,13 +1,13 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
 
 namespace LucHeart.CoreOSC.Tests;
 
 public class IntegrationTest
 {
-    [Fact(Timeout = 5000)]
-    public async Task TestMessage()
+    [Test, Timeout(5000)]
+    public async Task TestMessage(CancellationToken ct)
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using var listener = new OscListener(endpoint);
@@ -38,31 +38,29 @@ public class IntegrationTest
         await sender.SendAsync(msg1);
         
         var msgRevc = await listener.ReceiveMessageAsync();
-        Assert.NotNull(msgRevc);
-        
-        Assert.Equal("/test/address", msgRevc.Address);
-        Assert.Equal(16, msgRevc.Arguments.Length);
-
-        Assert.Equal(23, msgRevc.Arguments[0]);
-        Assert.Equal(42.42f, msgRevc.Arguments[1]);
-        Assert.Equal("hello world", msgRevc.Arguments[2]);
-        Assert.Equal(new byte[] { 2, 3, 4 }, msgRevc.Arguments[3]);
-        Assert.Equal(-123456789123, msgRevc.Arguments[4]);
-        Assert.Equal(new TimeTag(DateTime.Now.Date), msgRevc.Arguments[5]);
-        Assert.Equal(new TimeTag(DateTime.Now.Date.AddMonths(1)), msgRevc.Arguments[6]);
-        Assert.Equal(1234567.890, msgRevc.Arguments[7]);
-        Assert.Equal(new Symbol("wut wut"), msgRevc.Arguments[8]);
-        Assert.Equal('x', msgRevc.Arguments[9]);
-        Assert.Equal(new RGBA(20, 40, 60, 255), msgRevc.Arguments[10]);
-        Assert.Equal(new Midi(3, 110, 55, 66), msgRevc.Arguments[11]);
-        Assert.Equal(true, msgRevc.Arguments[12]);
-        Assert.Equal(false, msgRevc.Arguments[13]);
-        Assert.Null(msgRevc.Arguments[14]);
-        Assert.Equal(double.PositiveInfinity, msgRevc.Arguments[15]);
+        await Assert.That(msgRevc).IsNotNull();
+        await Assert.That(msgRevc.Address).IsEqualTo("/test/address");
+        await Assert.That(msgRevc.Arguments.Length).IsEqualTo(16);
+        await Assert.That(msgRevc.Arguments[0]).IsEqualTo(23);
+        await Assert.That(msgRevc.Arguments[1]).IsEqualTo(42.42f);
+        await Assert.That(msgRevc.Arguments[2]).IsEqualTo("hello world");
+        await Assert.That(msgRevc.Arguments[3]).IsEquivalentTo(new byte[] { 2, 3, 4 });
+        await Assert.That(msgRevc.Arguments[4]).IsEqualTo(-123456789123);
+        await Assert.That(msgRevc.Arguments[5]).IsEqualTo(new TimeTag(DateTime.Now.Date));
+        await Assert.That(msgRevc.Arguments[6]).IsEqualTo(new TimeTag(DateTime.Now.Date.AddMonths(1)));
+        await Assert.That(msgRevc.Arguments[7]).IsEqualTo(1234567.890);
+        await Assert.That(msgRevc.Arguments[8]).IsEqualTo(new Symbol("wut wut"));
+        await Assert.That(msgRevc.Arguments[9]).IsEqualTo('x');
+        await Assert.That(msgRevc.Arguments[10]).IsEqualTo(new RGBA(20, 40, 60, 255));
+        await Assert.That(msgRevc.Arguments[11]).IsEqualTo(new Midi(3, 110, 55, 66));
+        await Assert.That(msgRevc.Arguments[12]).IsEqualTo(true);
+        await Assert.That(msgRevc.Arguments[13]).IsEqualTo(false);
+        await Assert.That(msgRevc.Arguments[14]).IsNull();
+        await Assert.That(msgRevc.Arguments[15]).IsEqualTo(double.PositiveInfinity);
     }
 
-    [Fact(Timeout = 5000)]
-    public async Task TestBundle()
+    [Test, Timeout(5000)]
+    public async Task TestBundle(CancellationToken ct)
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using var listener = new OscListener(endpoint);
@@ -80,24 +78,24 @@ public class IntegrationTest
         await listener.ReceiveBundleAsync();
         var receivedMessage = await listener.ReceiveBundleAsync();
 
-        Assert.Equal(dt.Date, receivedMessage.Timestamp.Date);
-        Assert.Equal(dt.Hour, receivedMessage.Timestamp.Hour);
-        Assert.Equal(dt.Minute, receivedMessage.Timestamp.Minute);
-        Assert.Equal(dt.Second, receivedMessage.Timestamp.Second);
-        Assert.Equal(dt.Millisecond, receivedMessage.Timestamp.Millisecond);
+        await Assert.That(receivedMessage.Timestamp.Date).IsEqualTo(dt.Date);
+        await Assert.That(receivedMessage.Timestamp.Hour).IsEqualTo(dt.Hour);
+        await Assert.That(receivedMessage.Timestamp.Minute).IsEqualTo(dt.Minute);
+        await Assert.That(receivedMessage.Timestamp.Second).IsEqualTo(dt.Second);
+        await Assert.That(receivedMessage.Timestamp.Millisecond).IsEqualTo(dt.Millisecond);
         
-        Assert.Equal("/test/address1", receivedMessage.Messages[0].Address);
-        Assert.Equal(4, receivedMessage.Messages[0].Arguments.Length);
-        Assert.Equal(23, receivedMessage.Messages[0].Arguments[0]);
-        Assert.Equal(42.42f, receivedMessage.Messages[0].Arguments[1]);
-        Assert.Equal("hello world", receivedMessage.Messages[0].Arguments[2]);
-        Assert.Equal(new byte[] { 2, 3, 4 }, receivedMessage.Messages[0].Arguments[3]);
+        await Assert.That(receivedMessage.Messages[0].Address).IsEqualTo("/test/address1");
+        await Assert.That(receivedMessage.Messages[0].Arguments.Length).IsEqualTo(4);
+        await Assert.That(receivedMessage.Messages[0].Arguments[0]).IsEqualTo(23);
+        await Assert.That(receivedMessage.Messages[0].Arguments[1]).IsEqualTo(42.42f);
+        await Assert.That(receivedMessage.Messages[0].Arguments[2]).IsEqualTo("hello world");
+        await Assert.That(receivedMessage.Messages[0].Arguments[3]).IsEquivalentTo(new byte[] { 2, 3, 4 });
 
-        Assert.Equal("/test/address2", receivedMessage.Messages[1].Address);
-        Assert.Equal(4, receivedMessage.Messages[1].Arguments.Length);
-        Assert.Equal(34, receivedMessage.Messages[1].Arguments[0]);
-        Assert.Equal(24.24f, receivedMessage.Messages[1].Arguments[1]);
-        Assert.Equal("hello again", receivedMessage.Messages[1].Arguments[2]);
-        Assert.Equal(new byte[] { 5, 6, 7, 8, 9 }, receivedMessage.Messages[1].Arguments[3]);
+        await Assert.That(receivedMessage.Messages[1].Address).IsEqualTo("/test/address2");
+        await Assert.That(receivedMessage.Messages[1].Arguments.Length).IsEqualTo(4);
+        await Assert.That(receivedMessage.Messages[1].Arguments[0]).IsEqualTo(34);
+        await Assert.That(receivedMessage.Messages[1].Arguments[1]).IsEqualTo(24.24f);
+        await Assert.That(receivedMessage.Messages[1].Arguments[2]).IsEqualTo("hello again");
+        await Assert.That(receivedMessage.Messages[1].Arguments[3]).IsEquivalentTo(new byte[] { 5, 6, 7, 8, 9 });
     }
 }

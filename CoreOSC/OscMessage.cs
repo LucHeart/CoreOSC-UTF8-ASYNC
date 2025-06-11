@@ -6,7 +6,7 @@ using System.Text;
 
 namespace LucHeart.CoreOSC;
 
-public class OscMessage : IOscPacket
+public sealed class OscMessage : IOscPacket
 {
     public readonly string Address;
     public readonly object?[] Arguments;
@@ -162,7 +162,7 @@ public class OscMessage : IOscPacket
         return output;
     }
     
-        /// <summary>
+    /// <summary>
     /// Takes in an OSC bundle package in byte form and parses it into a more usable OscBundle object
     /// </summary>
     /// <param name="msg"></param>
@@ -176,7 +176,7 @@ public class OscMessage : IOscPacket
 
         // Get address
         var address = OscPacketUtils.GetAddress(msgReadOnlySpan, out var index);
-
+        
         if (index % 4 != 0)
             throw new Exception(
                 "Misaligned OSC Packet data. Address string is not padded correctly and does not align to 4 byte interval");

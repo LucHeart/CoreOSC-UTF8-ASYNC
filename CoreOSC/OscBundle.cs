@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LucHeart.CoreOSC;
 
-public class OscBundle : IOscPacket
+public sealed class OscBundle : IOscPacket
 {
     private TimeTag _timeTag;
 

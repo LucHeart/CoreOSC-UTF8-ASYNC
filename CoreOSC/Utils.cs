@@ -13,11 +13,11 @@ public static class Utils
         if (val == 1)
             return DateTime.Now;
 
-        uint seconds = (uint)(val >> 32);
-        uint fraction = (uint)(val & 0xFFFFFFFF);
+        var seconds = (uint)(val >> 32);
+        var fraction = (uint)(val & 0xFFFFFFFF);
 
         long secondsTicks = seconds * TimeSpan.TicksPerSecond;
-        long fractionTicks = (long)Math.Round(fraction / OscTicksPerDotNetTick); // We will loose accuracy in this conversion since there is about 430 OSC ticks per dotnet tick
+        var fractionTicks = (long)Math.Round(fraction / OscTicksPerDotNetTick); // We will loose accuracy in this conversion since there is about 430 OSC ticks per dotnet tick
 
         return new DateTime(EpochTicks + secondsTicks + fractionTicks);
     }
@@ -27,11 +27,11 @@ public static class Utils
         long ticks = value.Ticks - EpochTicks;
         if (ticks < 0) return 0;
 
-        uint seconds = (uint)(ticks / TimeSpan.TicksPerSecond);
-        uint fractions = (uint)Math.Round((ticks - (seconds * TimeSpan.TicksPerSecond)) * OscTicksPerDotNetTick);
+        var seconds = (uint)(ticks / TimeSpan.TicksPerSecond);
+        var fractions = (uint)Math.Round((ticks - (seconds * TimeSpan.TicksPerSecond)) * OscTicksPerDotNetTick);
 
-        ulong secondTicks = (ulong)seconds << 32;
-        ulong fractionTicks = (ulong)fractions & 0xFFFFFFFF;
+        var secondTicks = (ulong)seconds << 32;
+        var fractionTicks = (ulong)fractions & 0xFFFFFFFF;
 
         return secondTicks | fractionTicks;
     }

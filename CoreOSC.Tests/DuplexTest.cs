@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using Xunit;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace LucHeart.CoreOSC.Tests;
 
@@ -8,8 +8,8 @@ public class DuplexTest
     /// <summary>
     /// Duplex connection simple message test
     /// </summary>
-    [Fact(Timeout = 5000)]
-    public async Task DuplexSendReceive()
+    [Test, Timeout(5000)]
+    public async Task DuplexSendReceive(CancellationToken ct)
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using var duplex = new OscDuplex(endpoint, endpoint);
@@ -17,15 +17,15 @@ public class DuplexTest
         var msg = new OscMessage("/test/", 23.42f);
         await duplex.SendAsync(msg);
         var received = await duplex.ReceiveMessageAsync();
-        Assert.Equal("/test/", received.Address);
-        Assert.Equal(23.42f, received.Arguments[0]);
+        await Assert.That(received.Address).IsEqualTo("/test/");
+        await Assert.That(received.Arguments[0]).IsEqualTo(23.42f);
     }
     
     /// <summary>
     /// Duplex connection message with utf8 content
     /// </summary>
-    [Fact(Timeout = 5000)]
-    public async Task DuplexUft8()
+    [Test, Timeout(5000)]
+    public async Task DuplexUft8(CancellationToken ct)
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using var duplex = new OscDuplex(endpoint, endpoint);
@@ -33,7 +33,7 @@ public class DuplexTest
         var msg = new OscMessage("/test/", "⚡");
         await duplex.SendAsync(msg);
         var received = await duplex.ReceiveMessageAsync();
-        Assert.Equal("/test/", received.Address);
-        Assert.Equal("⚡", received.Arguments[0]);
+        await Assert.That(received.Address).IsEqualTo("/test/");
+        await Assert.That(received.Arguments[0]).IsEqualTo("⚡");
     }
 }
