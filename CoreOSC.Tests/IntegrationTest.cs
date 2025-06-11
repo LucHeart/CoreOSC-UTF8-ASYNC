@@ -49,7 +49,7 @@ public class IntegrationTest
         using var sender1 = new OscSender(endpoint);
         var msg1 = new OscMessage("/test/address1", 23, 42.42f, "hello world", new byte[] { 2, 3, 4 });
         var msg2 = new OscMessage("/test/address2", 34, 24.24f, "hello again", new byte[] { 5, 6, 7, 8, 9 });
-        var dt = Utils.DateTimeToTimeTag(TestDate);
+        var dt = Utils.DateTimeToTimeTag(DateTime.MaxValue);
         var bundle = new OscBundle(dt, msg1, msg2);
 
         await sender1.SendAsync(bundle);
