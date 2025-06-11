@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace LucHeart.CoreOSC.Tests;
+﻿namespace LucHeart.CoreOSC.Tests;
 
 public class DuplexTest
 {
@@ -17,8 +14,7 @@ public class DuplexTest
         var msg = new OscMessage("/test/", 23.42f);
         await duplex.SendAsync(msg);
         var received = await duplex.ReceiveMessageAsync();
-        await Assert.That(received.Address).IsEqualTo("/test/");
-        await Assert.That(received.Arguments[0]).IsEqualTo(23.42f);
+        await Verify(received);
     }
     
     /// <summary>
@@ -33,7 +29,6 @@ public class DuplexTest
         var msg = new OscMessage("/test/", "⚡");
         await duplex.SendAsync(msg);
         var received = await duplex.ReceiveMessageAsync();
-        await Assert.That(received.Address).IsEqualTo("/test/");
-        await Assert.That(received.Arguments[0]).IsEqualTo("⚡");
+        await Verify(received);
     }
 }

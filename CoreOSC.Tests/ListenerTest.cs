@@ -1,6 +1,5 @@
 ﻿using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
+
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
 
 namespace LucHeart.CoreOSC.Tests;
@@ -49,8 +48,7 @@ public class ListenerTest
         var msg = new OscMessage("/test/", 23.42f);
         await sender.SendAsync(msg);
         var received = await listener.ReceiveMessageAsync();
-        await Assert.That(received.Address).IsEqualTo("/test/");
-        await Assert.That(received.Arguments[0]).IsEqualTo(23.42f);
+        await Verify(received);
     }
     
     /// <summary>
@@ -80,33 +78,17 @@ public class ListenerTest
     /// Single message receive with utf8 content
     /// </summary>
     [Test, Timeout(5000)]
-    public async Task ListenerUtf8(CancellationToken ct)
+    [Arguments("/test/", "⚡")]
+    [Arguments("/test/", "There is a thunderstorm ⚡ brewing in the ☁")]
+    public async Task ListenerUtf8(string address, string argument, CancellationToken ct)
     {
         var endpoint = TestUtils.GetNextEndpoint();
         using var listener = new OscListener(endpoint);
         using var sender = new OscSender(endpoint);
     
-        var msg = new OscMessage("/test/", "⚡");
+        var msg = new OscMessage(address, argument);
         await sender.SendAsync(msg);
         var received = await listener.ReceiveMessageAsync();
-        await Assert.That(received.Address).IsEqualTo("/test/");
-        await Assert.That(received.Arguments[0]).IsEqualTo("⚡");
-    }
-    
-    /// <summary>
-    /// Single message receive with utf8 content
-    /// </summary>
-    [Test, Timeout(5000)]
-    public async Task ListenerUtf8_2(CancellationToken ct)
-    {
-        var endpoint = TestUtils.GetNextEndpoint();
-        using var listener = new OscListener(endpoint);
-        using var sender = new OscSender(endpoint);
-    
-        var msg = new OscMessage("/test/", "There is a thunderstorm ⚡ brewing in the ☁");
-        await sender.SendAsync(msg);
-        var received = await listener.ReceiveMessageAsync();
-        await Assert.That(received.Address).IsEqualTo("/test/");
-        await Assert.That(received.Arguments[0]).IsEqualTo("There is a thunderstorm ⚡ brewing in the ☁");
+        await Verify(received);
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace LucHeart.CoreOSC.Tests;
+﻿namespace LucHeart.CoreOSC.Tests;
 
 public class TimetagTest
 {

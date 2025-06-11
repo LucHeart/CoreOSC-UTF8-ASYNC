@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace LucHeart.CoreOSC.Tests;
+﻿namespace LucHeart.CoreOSC.Tests;
 
 public class ParseTest
 {
@@ -15,7 +11,7 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscMessage.ParseMessage(bytes);
-        await Assert.That(msg2.Arguments[0]).IsEqualTo(val);
+        await Verify(msg2);
     }
 
     [Test]
@@ -27,20 +23,20 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscMessage.ParseMessage(bytes);
-        await Assert.That(msg2.Arguments[0]).IsEquivalentTo(blob);
+        await Verify(msg2);
     }
 
     [Test]
     public async Task TestTimetag()
     {
-        var val = DateTime.Now;
+        var val = DateTime.MaxValue;
         var tag = new TimeTag(val);
 
         var msg = new OscMessage("/test/1", tag);
         var bytes = msg.GetBytes();
 
         var msg2 = OscMessage.ParseMessage(bytes);
-        await Assert.That(((TimeTag)msg2.Arguments[0]!).Tag).IsEqualTo(tag.Tag);
+        await Verify(msg2);
     }
 
     [Test]
@@ -52,7 +48,7 @@ public class ParseTest
 
         var msg2 = OscMessage.ParseMessage(bytes);
 
-        await Assert.That(msg2.Arguments[0]).IsEqualTo(num);
+        await Verify(msg2);
     }
 
     [Test]
@@ -64,10 +60,7 @@ public class ParseTest
 
         var msg2 = OscMessage.ParseMessage(bytes);
 
-        await Assert.That(msg2.Arguments[0]).IsEqualTo(9999);
-        await Assert.That(msg2.Arguments[1]).IsEquivalentTo(list);
-        await Assert.That(((List<object>)msg2.Arguments[1]!).Count).IsEqualTo(list.Count);
-        await Assert.That(msg2.Arguments[2]).IsEqualTo(24.24f);
+        await Verify(msg2);
     }
 
     [Test]
@@ -78,8 +71,6 @@ public class ParseTest
 
         var msg2 = OscMessage.ParseMessage(bytes);
 
-        await Assert.That(msg2.Address).IsEqualTo("");
-        await Assert.That(msg2.Arguments[0]).IsEqualTo(9999);
-        await Assert.That(msg2.Arguments[1]).IsEqualTo(24.24f);
+        await Verify(msg2);
     }
 }

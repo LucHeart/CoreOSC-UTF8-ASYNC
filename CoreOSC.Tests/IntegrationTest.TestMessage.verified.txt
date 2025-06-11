@@ -1,0 +1,41 @@
+﻿{
+  Address: /test/address,
+  Arguments: [
+    23,
+    42.42,
+    hello world,
+    AgME,
+    -123456789123,
+    {
+      Tag: 17002009434311884800,
+      Timestamp: DateTime_1,
+      Seconds: 3958588800.921681
+    },
+    {
+      Tag: 17013141989543116800,
+      Timestamp: DateTime_2,
+      Seconds: 3961180800.922284
+    },
+    1234567.89,
+    {
+      Value: wut wut
+    },
+    x,
+    {
+      R: 20,
+      G: 40,
+      B: 60,
+      A: 255
+    },
+    {
+      Port: 3,
+      Status: 110,
+      Data1: 55,
+      Data2: 66
+    },
+    true,
+    false,
+    null,
+    "Infinity"
+  ]
+}

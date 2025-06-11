@@ -1,0 +1,11 @@
+﻿{
+  Address: /test/1,
+  Arguments: [
+    {
+      Tag: 9484228971521376255,
+      Timestamp: DateTime_1,
+      Seconds: 2208219136.514141,
+      Fraction: 1.0
+    }
+  ]
+}

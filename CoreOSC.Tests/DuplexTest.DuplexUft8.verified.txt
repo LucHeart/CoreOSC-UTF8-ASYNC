@@ -1,0 +1,6 @@
+﻿{
+  Address: /test/,
+  Arguments: [
+    ⚡
+  ]
+}

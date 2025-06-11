@@ -1,0 +1,24 @@
+﻿{
+  Messages: [
+    {
+      Address: /test/address1,
+      Arguments: [
+        23,
+        42.42,
+        hello world,
+        AgME
+      ]
+    },
+    {
+      Address: /test/address2,
+      Arguments: [
+        34,
+        24.24,
+        hello again,
+        BQYHCAk=
+      ]
+    }
+  ],
+  TimeTag: 17070499113117679616,
+  Timestamp: DateTime_1
+}
