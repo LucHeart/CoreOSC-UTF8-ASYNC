@@ -39,12 +39,13 @@ public static class OscPacketUtils
 
     public static float GetFloat(Span<byte> msg, int index) => BitConverter.ToSingle(msg.ReverseSlice(index, 4));
 
-    public static string GetString(ReadOnlySpan<byte> msg, int index)
+    public static string GetString(ReadOnlySpan<byte> msg, int index, out int newIndex)
     {
         var i = index + 4;
         for (; i - 1 < msg.Length; i += 4)
         {
             if (msg[i - 1] != 0) continue;
+            newIndex = i;
             return Encoding.UTF8.GetString(msg[index..i]).Replace("\0", "");
         }
 
