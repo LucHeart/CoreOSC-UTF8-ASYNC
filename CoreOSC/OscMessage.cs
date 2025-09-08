@@ -217,9 +217,8 @@ public sealed class OscMessage : IOscPacket
                     break;
 
                 case 's':
-                    var stringVal = OscPacketUtils.GetString(msgReadOnlySpan, index);
+                    var stringVal = OscPacketUtils.GetString(msgReadOnlySpan, index, out index);
                     arguments.Add(stringVal);
-                    index += Encoding.UTF8.GetBytes(stringVal).Length;
                     break;
 
                 case 'b':
@@ -247,9 +246,8 @@ public sealed class OscMessage : IOscPacket
                     break;
 
                 case 'S':
-                    var symbolVal = OscPacketUtils.GetString(msgReadOnlySpan, index);
+                    var symbolVal = OscPacketUtils.GetString(msgReadOnlySpan, index, out index);
                     arguments.Add(new Symbol(symbolVal));
-                    index += symbolVal.Length;
                     break;
 
                 case 'c':

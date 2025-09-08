@@ -73,4 +73,27 @@ public class ParseTest
 
         await Verify(msg2);
     }
+
+    [Test]
+    public async Task TestStringPadding()
+    {
+        var msg = new OscMessage(
+            "/test/strings",
+            "",
+            "1",
+            "12",
+            "123",
+            "1234",
+            "12345",
+            "1234",
+            "123",
+            "12",
+            "1",
+            "");
+        var bytes = msg.GetBytes();
+
+        var msg2 = OscMessage.ParseMessage(bytes);
+
+        await Verify(msg2);
+    }
 }
