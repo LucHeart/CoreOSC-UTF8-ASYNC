@@ -15,12 +15,12 @@ public interface IOscListener
     public Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync();
 
 #if !NETSTANDARD
-    public Task<OscMessage> ReceiveMessageAsync(CancellationToken ct = default);
+    public Task<OscMessage> ReceiveMessageAsync(CancellationToken ct);
 
-    public Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct = default);
+    public Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct);
 
-    public Task<OscBundle> ReceiveBundleAsync(CancellationToken ct = default);
+    public Task<OscBundle> ReceiveBundleAsync(CancellationToken ct);
 
-    public Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct = default);
+    public Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct);
 #endif
 }

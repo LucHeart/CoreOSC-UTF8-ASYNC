@@ -68,7 +68,7 @@ public class OscListener : IDisposable, IOscListener
         }
     }
 #if !NETSTANDARD
-    public async Task<OscMessage> ReceiveMessageAsync(CancellationToken ct = default)
+    public async Task<OscMessage> ReceiveMessageAsync(CancellationToken ct)
     {
         if (EnableTransparentBundleToMessageConversion)
         {
@@ -100,7 +100,7 @@ public class OscListener : IDisposable, IOscListener
         return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
 #if !NETSTANDARD
-    public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct = default)
+    public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
@@ -113,7 +113,7 @@ public class OscListener : IDisposable, IOscListener
         return OscBundle.ParseBundle(receiveResult.Buffer);
     }
 #if !NETSTANDARD
-    public async Task<OscBundle> ReceiveBundleAsync(CancellationToken ct = default)
+    public async Task<OscBundle> ReceiveBundleAsync(CancellationToken ct)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return OscBundle.ParseBundle(receiveResult.Buffer);
@@ -126,7 +126,7 @@ public class OscListener : IDisposable, IOscListener
         return (OscBundle.ParseBundle(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
 #if !NETSTANDARD
-    public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct = default)
+    public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return (OscBundle.ParseBundle(receiveResult.Buffer), receiveResult.RemoteEndPoint);
