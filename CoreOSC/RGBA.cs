@@ -27,6 +27,7 @@ public readonly struct RGBA : IOscSerializable
     public static bool operator !=(RGBA a, RGBA b) => !a.Equals(b);
     public override int GetHashCode() => (R << 24) + (G << 16) + (B << 8) + A;
 
+    /// <inheritdoc />
     public byte[] ToBytes()
     {
         var output = new byte[4];

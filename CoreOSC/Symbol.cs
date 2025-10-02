@@ -12,6 +12,7 @@ public readonly struct Symbol : IOscSerializable
     }
 
     public override string ToString() => Value;
+    /// <inheritdoc />
     public byte[] ToBytes()
     {
         var bytes = Encoding.UTF8.GetBytes(Value);

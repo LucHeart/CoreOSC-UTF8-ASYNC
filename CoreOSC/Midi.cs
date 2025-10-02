@@ -28,6 +28,7 @@ public readonly struct Midi : IOscSerializable
     public override int GetHashCode() => (Port << 24) + (Status << 16) + (Data1 << 8) + (Data2);
 
 
+    /// <inheritdoc />
     public byte[] ToBytes()
     {
         var output = new byte[4];

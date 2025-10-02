@@ -43,6 +43,11 @@ public class OscListener : IDisposable, IOscListener
         }
     }
 
+    /// <inheritdoc />
+    /// <remarks>
+    /// When <see cref="EnableTransparentBundleToMessageConversion"/> is <see langword="true"/>, bundle contents are
+    /// transparently dequeued and returned as individual messages.
+    /// </remarks>
     public async Task<OscMessage> ReceiveMessageAsync(CancellationToken ct = default)
     {
         if (EnableTransparentBundleToMessageConversion)
@@ -76,6 +81,7 @@ public class OscListener : IDisposable, IOscListener
         }
     }
 
+    /// <inheritdoc />
     public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct = default)
     {
 #if !NETSTANDARD
@@ -86,6 +92,7 @@ public class OscListener : IDisposable, IOscListener
         return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
 
+    /// <inheritdoc />
     public async Task<OscBundle> ReceiveBundleAsync(CancellationToken ct = default)
     {
 #if !NETSTANDARD
@@ -96,6 +103,7 @@ public class OscListener : IDisposable, IOscListener
         return OscBundle.ParseBundle(receiveResult.Buffer);
     }
 
+    /// <inheritdoc />
     public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct = default)
     {
 #if !NETSTANDARD

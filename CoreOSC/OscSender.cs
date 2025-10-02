@@ -17,12 +17,16 @@ public class OscSender : IDisposable, IOscSender
         _sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     }
 
+    /// <inheritdoc />
     public Task SendAsync(byte[] message) => _sock.SendToAsync(message, SocketFlags.None, _remoteIpEndPoint);
 
+    /// <inheritdoc />
     public Task SendAsync(IOscPacket packet) => SendAsync(packet.GetBytes());
 
+    /// <inheritdoc />
     public Task SendAsync(IPEndPoint endPoint, byte[] message) => _sock.SendToAsync(message, SocketFlags.None, endPoint);
 
+    /// <inheritdoc />
     public Task SendAsync(IPEndPoint endPoint, IOscPacket packet) => SendAsync(endPoint, packet.GetBytes());
 
     public void Dispose()
