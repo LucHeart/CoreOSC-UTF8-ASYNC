@@ -43,6 +43,31 @@ public class OscListener : IDisposable, IOscListener
         }
     }
 
+    public async Task<OscMessage> ReceiveMessageAsync()
+    {
+        if (EnableTransparentBundleToMessageConversion)
+        {
+            if (MessageQueue.Count > 0)
+                return MessageQueue.Dequeue();
+            
+            var receiveResult = await UdpClient.ReceiveAsync();
+
+            if (!OscBundle.IsBundle(receiveResult.Buffer))
+                return OscMessage.ParseMessage(receiveResult.Buffer);
+            
+            var bundle = OscBundle.ParseBundle(receiveResult.Buffer);
+            foreach (var bundleMessage in bundle.Messages)
+                MessageQueue.Enqueue(bundleMessage);
+            
+            return MessageQueue.Dequeue();
+        }
+        else
+        {
+            var receiveResult = await UdpClient.ReceiveAsync();
+            return OscMessage.ParseMessage(receiveResult.Buffer);
+        }
+    }
+#if !NETSTANDARD
     public async Task<OscMessage> ReceiveMessageAsync(CancellationToken ct = default)
     {
         if (EnableTransparentBundleToMessageConversion)
@@ -67,24 +92,46 @@ public class OscListener : IDisposable, IOscListener
             return OscMessage.ParseMessage(receiveResult.Buffer);
         }
     }
+#endif
 
+    public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
+    }
+#if !NETSTANDARD
     public async Task<(OscMessage Message, IPEndPoint EndPoint)> ReceiveMessageExAsync(CancellationToken ct = default)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return (OscMessage.ParseMessage(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
+#endif
 
+    public async Task<OscBundle> ReceiveBundleAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return OscBundle.ParseBundle(receiveResult.Buffer);
+    }
+#if !NETSTANDARD
     public async Task<OscBundle> ReceiveBundleAsync(CancellationToken ct = default)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return OscBundle.ParseBundle(receiveResult.Buffer);
     }
+#endif
 
+    public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync()
+    {
+        var receiveResult = await UdpClient.ReceiveAsync();
+        return (OscBundle.ParseBundle(receiveResult.Buffer), receiveResult.RemoteEndPoint);
+    }
+#if !NETSTANDARD
     public async Task<(OscBundle Bundle, IPEndPoint EndPoint)> ReceiveBundleExAsync(CancellationToken ct = default)
     {
         var receiveResult = await UdpClient.ReceiveAsync(ct);
         return (OscBundle.ParseBundle(receiveResult.Buffer), receiveResult.RemoteEndPoint);
     }
+#endif
 
     public void Dispose()
     {
