@@ -17,6 +17,7 @@ public sealed class OscMessage : IOscPacket
         Arguments = args;
     }
 
+    /// <inheritdoc />
     public byte[] GetBytes()
     {
         var parts = new List<byte[]>();

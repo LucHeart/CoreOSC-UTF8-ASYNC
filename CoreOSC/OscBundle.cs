@@ -33,6 +33,7 @@ public sealed class OscBundle : IOscPacket
     private const string BundleName = "#bundle";
     private static readonly int BundleTagLen = Utils.AlignedStringLength(BundleName);
     
+    /// <inheritdoc />
     public byte[] GetBytes()
     {
         var outMessages = Messages.Select(msg => msg.GetBytes()).ToArray();
