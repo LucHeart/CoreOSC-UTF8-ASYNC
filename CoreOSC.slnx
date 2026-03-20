@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="CoreOSC.RecieverExample/CoreOSC.RecieverExample.csproj" />
+  <Project Path="CoreOSC.Tests/CoreOSC.Tests.csproj" />
+  <Project Path="CoreOSC/CoreOSC.csproj" />
+</Solution>

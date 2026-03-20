@@ -3,8 +3,8 @@
     <PropertyGroup>
         <AssemblyName>LucHeart.CoreOSC</AssemblyName>
         <RootNamespace>LucHeart.CoreOSC</RootNamespace>
-        <TargetFrameworks>netstandard2.1;net8.0;net9.0</TargetFrameworks>
-        <LangVersion>12</LangVersion>
+        <TargetFrameworks>netstandard2.1;net8.0;net9.0;net10.0</TargetFrameworks>
+        <LangVersion>14</LangVersion>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>LucHeart.CoreOSC</PackageId>
@@ -16,7 +16,7 @@
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <NeutralLanguage>en</NeutralLanguage>
-        <Version>1.6.0</Version>
+        <Version>1.6.1</Version>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryType>git</RepositoryType>
         <PackageReadmeFile>README.md</PackageReadmeFile>
