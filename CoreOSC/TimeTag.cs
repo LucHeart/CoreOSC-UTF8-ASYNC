@@ -57,6 +57,6 @@ public struct TimeTag
     };
     
     public static bool operator ==(TimeTag a, TimeTag b) => a.Equals(b);
-    public static bool operator !=(TimeTag a, TimeTag b) => a.Equals(b);
+    public static bool operator !=(TimeTag a, TimeTag b) => !a.Equals(b);
     public override int GetHashCode() => (int)(((uint)(Tag >> 32) + (uint)(Tag & 0x00000000FFFFFFFF)) / 2);
 }

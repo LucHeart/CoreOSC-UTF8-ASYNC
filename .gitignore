@@ -4,3 +4,4 @@ obj/
 .vs
 *.user
 .sonarqube
+TestResults/

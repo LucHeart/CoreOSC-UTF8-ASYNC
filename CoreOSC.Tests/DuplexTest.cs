@@ -13,7 +13,7 @@ public class DuplexTest
         
         var msg = new OscMessage("/test/", 23.42f);
         await duplex.SendAsync(msg);
-        var received = await duplex.ReceiveMessageAsync();
+        var received = await duplex.ReceiveMessageAsync(ct);
         await Verify(received);
     }
     
@@ -28,7 +28,7 @@ public class DuplexTest
     
         var msg = new OscMessage("/test/", "⚡");
         await duplex.SendAsync(msg);
-        var received = await duplex.ReceiveMessageAsync();
+        var received = await duplex.ReceiveMessageAsync(ct);
         await Verify(received);
     }
 }
