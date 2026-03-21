@@ -38,4 +38,12 @@ public readonly struct Midi : IOscSerializable
         output[3] = Data2;
         return output;
     }
+
+    public void WriteTo(System.Span<byte> dest)
+    {
+        dest[0] = Port;
+        dest[1] = Status;
+        dest[2] = Data1;
+        dest[3] = Data2;
+    }
 }

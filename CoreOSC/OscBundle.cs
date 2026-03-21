@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace LucHeart.CoreOSC;
@@ -36,25 +35,32 @@ public sealed class OscBundle : IOscPacket
     /// <inheritdoc />
     public byte[] GetBytes()
     {
-        var outMessages = Messages.Select(msg => msg.GetBytes()).ToArray();
+        var messageCount = Messages.Count;
+        var outMessages = new byte[messageCount][];
+        var totalMsgSize = 0;
+        for (var m = 0; m < messageCount; m++)
+        {
+            outMessages[m] = Messages[m].GetBytes();
+            totalMsgSize += outMessages[m].Length + 4; // +4 for size prefix
+        }
 
-        var tag = OscPacketUtils.SetULong(_timeTag.Tag);
-        var len = BundleTagLen + tag.Length + outMessages.Sum(x => x.Length + 4);
-        
+        var len = BundleTagLen + 8 + totalMsgSize;
         var output = new byte[len];
-        Encoding.ASCII.GetBytes(BundleName).CopyTo(output, 0);
+        var span = output.AsSpan();
+
+        Encoding.ASCII.GetBytes(BundleName.AsSpan(), span);
         var i = BundleTagLen;
-        tag.CopyTo(output, i);
-        i += tag.Length;
+
+        OscPacketUtils.WriteULong(span[i..], _timeTag.Tag);
+        i += 8;
 
         foreach (var msg in outMessages)
         {
-            var size = OscPacketUtils.SetInt(msg.Length);
-            size.CopyTo(output, i);
-            i += size.Length;
+            OscPacketUtils.WriteInt(span[i..], msg.Length);
+            i += 4;
 
-            msg.CopyTo(output, i);
-            i += msg.Length; // msg size is always a multiple of 4
+            msg.CopyTo(span[i..]);
+            i += msg.Length;
         }
 
         return output;
@@ -72,14 +78,12 @@ public sealed class OscBundle : IOscPacket
 
         var index = 0;
 
-        var bundleTag = Encoding.ASCII.GetString(msgReadOnly[..8]);
+        if (!IsBundle(msgReadOnly))
+            throw new Exception("Not a bundle");
         index += 8;
 
         var timeTag = OscPacketUtils.GetULong(msgReadOnly, index);
         index += 8;
-
-        if (bundleTag != "#bundle\0")
-            throw new Exception("Not a bundle");
 
         while (index < msgReadOnly.Length)
         {
@@ -99,12 +103,13 @@ public sealed class OscBundle : IOscPacket
         return output;
     }
     
+    private static ReadOnlySpan<byte> BundleTagBytes => "#bundle\0"u8;
+
     public static bool IsBundle(ReadOnlySpan<byte> msg)
     {
         if (msg.Length < 8)
             return false;
-        
-        var bundleTag = Encoding.ASCII.GetString(msg[..8]);
-        return bundleTag == "#bundle\0";
+
+        return msg[..8].SequenceEqual(BundleTagBytes);
     }
 }

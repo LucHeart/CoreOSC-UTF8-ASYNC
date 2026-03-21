@@ -23,6 +23,10 @@ public readonly struct Symbol : IOscSerializable
         return msg;
     }
 
+    public int GetByteSize() => OscPacketUtils.GetStringByteSize(Value);
+
+    public int WriteTo(System.Span<byte> dest) => OscPacketUtils.WriteString(dest, Value);
+
     public override bool Equals(object? obj) => obj switch
     {
         Symbol symbol => Value == symbol.Value,

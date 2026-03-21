@@ -14,8 +14,11 @@ public static class OscPacketUtils
     {
         index = msg.IndexOf(DividerChar);
         if (index == -1) throw new Exception("Could not get address from data");
-        var address = Encoding.ASCII.GetString(msg[..index]);
-        return address.Replace("\0", "");
+        // Find the actual string length before null terminators
+        var slice = msg[..index];
+        var nullIndex = slice.IndexOf((byte)0);
+        var strLen = nullIndex == -1 ? slice.Length : nullIndex;
+        return Encoding.ASCII.GetString(slice[..strLen]);
     }
 
     public static ReadOnlySpan<char> GetTypes(ReadOnlySpan<byte> msg, int index)
@@ -26,7 +29,7 @@ public static class OscPacketUtils
         {
             if (msg[i - 1] != 0) continue;
             var charSet = msg[index..i];
-            var newSpan = new char[Encoding.ASCII.GetMaxCharCount(charSet.Length)].AsSpan();
+            var newSpan = new char[charSet.Length].AsSpan();
             Encoding.ASCII.GetChars(charSet, newSpan);
             return newSpan;
         }
@@ -46,7 +49,11 @@ public static class OscPacketUtils
         {
             if (msg[i - 1] != 0) continue;
             newIndex = i;
-            return Encoding.UTF8.GetString(msg[index..i]).Replace("\0", "");
+            // Find the actual string length before null terminators
+            var slice = msg[index..i];
+            var nullPos = slice.IndexOf((byte)0);
+            var strLen = nullPos == -1 ? slice.Length : nullPos;
+            return Encoding.UTF8.GetString(slice[..strLen]);
         }
 
         throw new Exception("No null terminator after type string");
@@ -163,4 +170,90 @@ public static class OscPacketUtils
     }
 
     #endregion Create byte arrays for arguments
+
+    #region Write arguments directly into span
+
+    public static void WriteInt(Span<byte> dest, int value) =>
+        BinaryPrimitives.WriteInt32BigEndian(dest, value);
+
+    public static void WriteFloat(Span<byte> dest, float value)
+    {
+#if NETSTANDARD2_1
+        var rev = BitConverter.GetBytes(value);
+        dest[0] = rev[3];
+        dest[1] = rev[2];
+        dest[2] = rev[1];
+        dest[3] = rev[0];
+#else
+        BinaryPrimitives.WriteSingleBigEndian(dest, value);
+#endif
+    }
+
+    public static int WriteString(Span<byte> dest, string value)
+    {
+        var byteCount = Encoding.UTF8.GetBytes(value.AsSpan(), dest);
+        var padded = (byteCount / 4 + 1) * 4;
+        dest[byteCount..padded].Clear();
+        return padded;
+    }
+
+    public static int WriteBlob(Span<byte> dest, byte[] value)
+    {
+        var len = value.Length + 4;
+        len += 4 - len % 4;
+        BinaryPrimitives.WriteInt32BigEndian(dest, value.Length);
+        value.CopyTo(dest[4..]);
+        dest[(4 + value.Length)..len].Clear();
+        return len;
+    }
+
+    public static void WriteLong(Span<byte> dest, long value) =>
+        BinaryPrimitives.WriteInt64BigEndian(dest, value);
+
+    public static void WriteULong(Span<byte> dest, ulong value) =>
+        BinaryPrimitives.WriteUInt64BigEndian(dest, value);
+
+    public static void WriteDouble(Span<byte> dest, double value)
+    {
+#if NETSTANDARD2_1
+        var rev = BitConverter.GetBytes(value);
+        dest[0] = rev[7];
+        dest[1] = rev[6];
+        dest[2] = rev[5];
+        dest[3] = rev[4];
+        dest[4] = rev[3];
+        dest[5] = rev[2];
+        dest[6] = rev[1];
+        dest[7] = rev[0];
+#else
+        BinaryPrimitives.WriteDoubleBigEndian(dest, value);
+#endif
+    }
+
+    public static void WriteChar(Span<byte> dest, char value)
+    {
+        dest[0] = 0;
+        dest[1] = 0;
+        dest[2] = 0;
+        dest[3] = (byte)value;
+    }
+
+    #endregion Write arguments directly into span
+
+    #region Size calculation helpers
+
+    public static int GetStringByteSize(string value)
+    {
+        var byteCount = Encoding.UTF8.GetByteCount(value);
+        return (byteCount / 4 + 1) * 4;
+    }
+
+    public static int GetBlobByteSize(byte[] value)
+    {
+        var len = value.Length + 4;
+        len += 4 - len % 4;
+        return len;
+    }
+
+    #endregion Size calculation helpers
 }

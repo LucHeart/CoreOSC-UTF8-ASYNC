@@ -37,4 +37,12 @@ public readonly struct RGBA : IOscSerializable
         output[3] = A;
         return output;
     }
+
+    public void WriteTo(System.Span<byte> dest)
+    {
+        dest[0] = R;
+        dest[1] = G;
+        dest[2] = B;
+        dest[3] = A;
+    }
 }

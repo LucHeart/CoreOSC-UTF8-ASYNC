@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace LucHeart.CoreOSC;
@@ -20,21 +19,21 @@ public sealed class OscMessage : IOscPacket
     /// <inheritdoc />
     public byte[] GetBytes()
     {
-        var parts = new List<byte[]>();
-
+        // === Pass 1: Build type string and calculate total data size ===
         var currentList = Arguments;
         var argumentsIndex = 0;
 
         var typeStringBuilder = new StringBuilder(",");
+        var dataSize = 0;
         var i = 0;
         while (i < currentList.Length)
         {
             var arg = currentList[i];
             switch (arg)
             {
-                case int intValue:
+                case int:
                     typeStringBuilder.Append('i');
-                    parts.Add(OscPacketUtils.SetInt(intValue));
+                    dataSize += 4;
                     break;
 
                 case float floatValue:
@@ -44,32 +43,32 @@ public sealed class OscMessage : IOscPacket
                         break;
                     }
                     typeStringBuilder.Append('f');
-                    parts.Add(OscPacketUtils.SetFloat(floatValue));
+                    dataSize += 4;
                     break;
 
                 case string stringValue:
                     typeStringBuilder.Append('s');
-                    parts.Add(OscPacketUtils.SetString(stringValue));
+                    dataSize += OscPacketUtils.GetStringByteSize(stringValue);
                     break;
 
                 case byte[] byteArrayValue:
                     typeStringBuilder.Append('b');
-                    parts.Add(OscPacketUtils.SetBlob(byteArrayValue));
+                    dataSize += OscPacketUtils.GetBlobByteSize(byteArrayValue);
                     break;
 
-                case long longValue:
+                case long:
                     typeStringBuilder.Append('h');
-                    parts.Add(OscPacketUtils.SetLong(longValue));
+                    dataSize += 8;
                     break;
 
-                case ulong ulongValue:
+                case ulong:
                     typeStringBuilder.Append('t');
-                    parts.Add(OscPacketUtils.SetULong(ulongValue));
+                    dataSize += 8;
                     break;
 
-                case TimeTag timeTagValue:
+                case TimeTag:
                     typeStringBuilder.Append('t');
-                    parts.Add(OscPacketUtils.SetULong(timeTagValue.Tag));
+                    dataSize += 8;
                     break;
 
                 case double doubleValue:
@@ -78,42 +77,38 @@ public sealed class OscMessage : IOscPacket
                         typeStringBuilder.Append('I');
                         break;
                     }
-
                     typeStringBuilder.Append('d');
-                    parts.Add(OscPacketUtils.SetDouble(doubleValue));
+                    dataSize += 8;
                     break;
 
                 case Symbol symbolValue:
                     typeStringBuilder.Append('S');
-                    parts.Add(symbolValue.ToBytes());
+                    dataSize += symbolValue.GetByteSize();
                     break;
 
-                case char charValue:
+                case char:
                     typeStringBuilder.Append('c');
-                    parts.Add(OscPacketUtils.SetChar(charValue));
+                    dataSize += 4;
                     break;
 
-                case RGBA rgbaValue:
+                case RGBA:
                     typeStringBuilder.Append('r');
-                    parts.Add(rgbaValue.ToBytes());
+                    dataSize += 4;
                     break;
 
-                case Midi midiValue:
+                case Midi:
                     typeStringBuilder.Append('m');
-                    parts.Add(midiValue.ToBytes());
+                    dataSize += 4;
                     break;
 
                 case bool boolValue:
-                    typeStringBuilder.Append(boolValue ? "T" : "F");
+                    typeStringBuilder.Append(boolValue ? 'T' : 'F');
                     break;
 
                 case null:
                     typeStringBuilder.Append('N');
                     break;
 
-                // This part handles arrays. It points currentList to the array and resets i
-                // The array is processed like normal and when it is finished we replace
-                // currentList back with Arguments and continue from where we left off
                 case ICollection collectionValue:
                     var array = new object[collectionValue.Count];
                     collectionValue.CopyTo(array, 0);
@@ -132,32 +127,123 @@ public sealed class OscMessage : IOscPacket
 
             i++;
             if (currentList == Arguments || i != currentList.Length) continue;
-            
-            // End of array, go back to main Argument list
             typeStringBuilder.Append(']');
             currentList = Arguments;
             i = argumentsIndex + 1;
         }
 
+        // === Allocate single output buffer ===
         var addressLen = string.IsNullOrEmpty(Address) ? 0 : Utils.AlignedStringLength(Address);
         var typeString = typeStringBuilder.ToString();
         var typeLen = Utils.AlignedStringLength(typeString);
+        var total = addressLen + typeLen + dataSize;
 
-        var total = addressLen + typeLen + parts.Sum(x => x.Length);
-        
         var output = new byte[total];
+        var span = output.AsSpan();
+        var offset = 0;
+
+        // Write address
+        Encoding.ASCII.GetBytes(Address.AsSpan(), span[offset..]);
+        offset += addressLen;
+
+        // Write type string
+        Encoding.ASCII.GetBytes(typeString.AsSpan(), span[offset..]);
+        offset += typeLen;
+
+        // === Pass 2: Write argument data directly into buffer ===
+        currentList = Arguments;
+        argumentsIndex = 0;
         i = 0;
-
-        Encoding.ASCII.GetBytes(Address).CopyTo(output, i);
-        i += addressLen;
-        
-        Encoding.ASCII.GetBytes(typeString).CopyTo(output, i);
-        i += typeLen;
-
-        foreach (var part in parts)
+        while (i < currentList.Length)
         {
-            part.CopyTo(output, i);
-            i += part.Length;
+            var arg = currentList[i];
+            switch (arg)
+            {
+                case int intValue:
+                    OscPacketUtils.WriteInt(span[offset..], intValue);
+                    offset += 4;
+                    break;
+
+                case float floatValue:
+                    if (!float.IsPositiveInfinity(floatValue))
+                    {
+                        OscPacketUtils.WriteFloat(span[offset..], floatValue);
+                        offset += 4;
+                    }
+                    break;
+
+                case string stringValue:
+                    offset += OscPacketUtils.WriteString(span[offset..], stringValue);
+                    break;
+
+                case byte[] byteArrayValue:
+                    offset += OscPacketUtils.WriteBlob(span[offset..], byteArrayValue);
+                    break;
+
+                case long longValue:
+                    OscPacketUtils.WriteLong(span[offset..], longValue);
+                    offset += 8;
+                    break;
+
+                case ulong ulongValue:
+                    OscPacketUtils.WriteULong(span[offset..], ulongValue);
+                    offset += 8;
+                    break;
+
+                case TimeTag timeTagValue:
+                    OscPacketUtils.WriteULong(span[offset..], timeTagValue.Tag);
+                    offset += 8;
+                    break;
+
+                case double doubleValue:
+                    if (!double.IsPositiveInfinity(doubleValue))
+                    {
+                        OscPacketUtils.WriteDouble(span[offset..], doubleValue);
+                        offset += 8;
+                    }
+                    break;
+
+                case Symbol symbolValue:
+                    offset += symbolValue.WriteTo(span[offset..]);
+                    break;
+
+                case char charValue:
+                    OscPacketUtils.WriteChar(span[offset..], charValue);
+                    offset += 4;
+                    break;
+
+                case RGBA rgbaValue:
+                    rgbaValue.WriteTo(span[offset..]);
+                    offset += 4;
+                    break;
+
+                case Midi midiValue:
+                    midiValue.WriteTo(span[offset..]);
+                    offset += 4;
+                    break;
+
+                case bool:
+                case null:
+                    break;
+
+                case ICollection collectionValue:
+                    var array = new object[collectionValue.Count];
+                    collectionValue.CopyTo(array, 0);
+                    if (Arguments != currentList)
+                        throw new Exception("Nested Arrays are not supported");
+                    currentList = array;
+                    argumentsIndex = i;
+                    i = 0;
+                    continue;
+
+                default:
+                    throw new Exception("Unable to transmit values of type " + arg.GetType().FullName);
+            }
+
+            i++;
+            if (currentList == Arguments || i != currentList.Length) continue;
+            currentList = Arguments;
+            i = argumentsIndex + 1;
         }
 
         return output;
