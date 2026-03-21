@@ -128,6 +128,55 @@ public class BundleTest
 
     #endregion
 
+    [Test]
+    public async Task BundleManyMessages()
+    {
+        var messages = new OscMessage[20];
+        for (var i = 0; i < 20; i++)
+            messages[i] = new OscMessage($"/msg/{i}", i, $"val{i}");
+
+        var bundle = new OscBundle(1, messages);
+        var bytes = bundle.GetBytes();
+        var parsed = OscBundle.ParseBundle(bytes);
+
+        await Assert.That(parsed.Messages.Count).IsEqualTo(20);
+        for (var i = 0; i < 20; i++)
+        {
+            await Assert.That(parsed.Messages[i].Address).IsEqualTo($"/msg/{i}");
+            await Assert.That(parsed.Messages[i].Arguments[0]).IsEqualTo(i);
+            await Assert.That(parsed.Messages[i].Arguments[1]).IsEqualTo($"val{i}");
+        }
+    }
+
+    [Test]
+    public async Task BundleTimestampPropertyRoundtrip()
+    {
+        var dt = DateTime.Parse("2025-03-15T08:30:00Z");
+        var bundle = new OscBundle(0, new OscMessage("/test", 1));
+        bundle.Timestamp = dt;
+
+        var bytes = bundle.GetBytes();
+        var parsed = OscBundle.ParseBundle(bytes);
+        var parsedDt = Utils.TimeTagToDateTime(parsed.TimeTag);
+
+        await Assert.That(parsedDt.Date).IsEqualTo(dt.Date);
+        await Assert.That(parsedDt.Hour).IsEqualTo(dt.Hour);
+        await Assert.That(parsedDt.Minute).IsEqualTo(dt.Minute);
+        await Assert.That(parsedDt.Second).IsEqualTo(dt.Second);
+    }
+
+    [Test]
+    public async Task BundleGetBytesAlwaysMultipleOf4()
+    {
+        var bundle = new OscBundle(1,
+            new OscMessage("/a", 1),
+            new OscMessage("/ab", "x"),
+            new OscMessage("/abc", 1, 2.0f, "hi"));
+
+        var bytes = bundle.GetBytes();
+        await Assert.That(bytes.Length % 4).IsEqualTo(0);
+    }
+
     #region Error cases
 
     [Test]

@@ -37,7 +37,7 @@ public class IntegrationTest
 
         await sender.SendAsync(msg1);
         
-        var msgRevc = await listener.ReceiveMessageAsync();
+        var msgRevc = await listener.ReceiveMessageAsync(ct);
         await Verify(msgRevc);
     }
 
@@ -56,9 +56,9 @@ public class IntegrationTest
         await sender1.SendAsync(bundle);
         await sender1.SendAsync(bundle);
 
-        await listener.ReceiveBundleAsync();
-        await listener.ReceiveBundleAsync();
-        var receivedMessage = await listener.ReceiveBundleAsync();
+        await listener.ReceiveBundleAsync(ct);
+        await listener.ReceiveBundleAsync(ct);
+        var receivedMessage = await listener.ReceiveBundleAsync(ct);
         await Verify(receivedMessage);
     }
 }

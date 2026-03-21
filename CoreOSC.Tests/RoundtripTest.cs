@@ -485,6 +485,142 @@ public class RoundtripTest
 
     #endregion
 
+    #region ULong roundtrip (distinct from TimeTag)
+
+    [Test]
+    [Arguments(0UL)]
+    [Arguments(1UL)]
+    [Arguments(ulong.MaxValue)]
+    [Arguments(9999999999UL)]
+    public async Task RoundtripULong(ulong value)
+    {
+        // ulong is encoded as TimeTag type 't', so it comes back as TimeTag
+        var msg = new OscMessage("/ulong", value);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        var parsedTag = (TimeTag)parsed.Arguments[0]!;
+        await Assert.That(parsedTag.Tag).IsEqualTo(value);
+    }
+
+    #endregion
+
+    #region Blob padding and sequencing
+
+    [Test]
+    [Arguments(1)]
+    [Arguments(2)]
+    [Arguments(3)]
+    [Arguments(4)]
+    [Arguments(5)]
+    [Arguments(6)]
+    [Arguments(7)]
+    [Arguments(8)]
+    public async Task RoundtripBlobPaddingSizes(int size)
+    {
+        var blob = new byte[size];
+        for (var i = 0; i < size; i++) blob[i] = (byte)(i + 1);
+
+        var msg = new OscMessage("/blob", blob);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        await Assert.That((byte[])parsed.Arguments[0]!).IsEquivalentTo(blob);
+    }
+
+    [Test]
+    public async Task RoundtripMultipleBlobs()
+    {
+        var blob1 = new byte[] { 1, 2, 3 };
+        var blob2 = new byte[] { 4, 5, 6, 7, 8 };
+        var blob3 = new byte[] { 9 };
+
+        var msg = new OscMessage("/blobs", blob1, blob2, blob3);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        await Assert.That(parsed.Arguments.Length).IsEqualTo(3);
+        await Assert.That((byte[])parsed.Arguments[0]!).IsEquivalentTo(blob1);
+        await Assert.That((byte[])parsed.Arguments[1]!).IsEquivalentTo(blob2);
+        await Assert.That((byte[])parsed.Arguments[2]!).IsEquivalentTo(blob3);
+    }
+
+    [Test]
+    public async Task RoundtripBlobFollowedByString()
+    {
+        var blob = new byte[] { 1, 2, 3, 4, 5 };
+        var msg = new OscMessage("/mixed", blob, "after blob");
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        await Assert.That(parsed.Arguments.Length).IsEqualTo(2);
+        await Assert.That((byte[])parsed.Arguments[0]!).IsEquivalentTo(blob);
+        await Assert.That(parsed.Arguments[1]).IsEqualTo("after blob");
+    }
+
+    [Test]
+    public async Task RoundtripStringFollowedByBlob()
+    {
+        var blob = new byte[] { 10, 20 };
+        var msg = new OscMessage("/mixed", "before blob", blob);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        await Assert.That(parsed.Arguments.Length).IsEqualTo(2);
+        await Assert.That(parsed.Arguments[0]).IsEqualTo("before blob");
+        await Assert.That((byte[])parsed.Arguments[1]!).IsEquivalentTo(blob);
+    }
+
+    #endregion
+
+    #region TimeTag.Immediate
+
+    [Test]
+    public async Task RoundtripTimeTagImmediate()
+    {
+        var msg = new OscMessage("/tt", TimeTag.Immediate);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        var parsedTag = (TimeTag)parsed.Arguments[0]!;
+        await Assert.That(parsedTag.Tag).IsEqualTo(1UL);
+    }
+
+    #endregion
+
+    #region Many arguments stress
+
+    [Test]
+    public async Task RoundtripManyArguments()
+    {
+        var args = new object[50];
+        for (var i = 0; i < 50; i++) args[i] = i;
+
+        var msg = new OscMessage("/stress", args);
+        var parsed = OscMessage.ParseMessage(msg.GetBytes());
+
+        await Assert.That(parsed.Arguments.Length).IsEqualTo(50);
+        for (var i = 0; i < 50; i++)
+            await Assert.That(parsed.Arguments[i]).IsEqualTo(i);
+    }
+
+    #endregion
+
+    #region Error cases
+
+    [Test]
+    public async Task GetBytesThrowsOnUnsupportedType()
+    {
+        var msg = new OscMessage("/bad", new DateTime(2025, 1, 1));
+        Assert.Throws<Exception>(() => msg.GetBytes());
+    }
+
+    [Test]
+    public async Task GetBytesThrowsOnNestedArrays()
+    {
+        var inner = new List<object> { 1 };
+        var outer = new List<object> { inner };
+        var msg = new OscMessage("/bad", outer);
+
+        Assert.Throws<Exception>(() => msg.GetBytes());
+    }
+
+    #endregion
+
     #region GetBytes determinism
 
     [Test]
@@ -495,6 +631,33 @@ public class RoundtripTest
         var bytes2 = msg.GetBytes();
 
         await Assert.That(bytes1).IsEquivalentTo(bytes2);
+    }
+
+    #endregion
+
+    #region GetBytes output alignment
+
+    [Test]
+    public async Task GetBytesAlwaysMultipleOf4()
+    {
+        var messages = new[]
+        {
+            new OscMessage("/a", 1),
+            new OscMessage("/ab", 1),
+            new OscMessage("/abc", 1),
+            new OscMessage("/abcd", 1),
+            new OscMessage("/test", "x"),
+            new OscMessage("/test", "xy"),
+            new OscMessage("/test", "xyz"),
+            new OscMessage("/test", "xyzw"),
+            new OscMessage("/test", 1, 2.0f, "hello", new byte[] { 1 }),
+        };
+
+        foreach (var msg in messages)
+        {
+            var bytes = msg.GetBytes();
+            await Assert.That(bytes.Length % 4).IsEqualTo(0);
+        }
     }
 
     #endregion

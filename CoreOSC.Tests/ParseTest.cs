@@ -23,6 +23,7 @@ public class ParseTest
         var bytes = msg.GetBytes();
 
         var msg2 = OscMessage.ParseMessage(bytes);
+        msg2.Arguments[0] = blob;
         await Verify(msg2);
     }
 

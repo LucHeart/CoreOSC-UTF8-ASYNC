@@ -254,9 +254,12 @@ public class TypeTest
     {
         var a = new TimeTag(42UL);
         var b = new TimeTag(42UL);
+        var c = new TimeTag(43UL);
 
         await Assert.That(a == b).IsTrue();
         await Assert.That(a != b).IsFalse();
+        await Assert.That(a != c).IsTrue();
+        await Assert.That(a == c).IsFalse();
     }
 
     [Test]
